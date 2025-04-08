@@ -1,37 +1,55 @@
-const Performance = require('../models/Performance');
-const Attendance = require('../models/Attendance');
+const Student = require('../models/Student');
 
-// Add performance marks
-exports.addPerformance = async (req, res) => {
+// Mark student attendance
+exports.markAttendance = async (req, res) => {
   try {
-    const { studentId, type, marks, reason } = req.body;
-    const performance = new Performance({
-      student: studentId,
-      teacher: req.user.id,
-      type,
-      marks,
-      reason
+    const { date, students } = req.body;
+    
+    const updatePromises = students.map(async ({ studentId, status }) => {
+      const student = await Student.findById(studentId);
+      if (student) {
+        // Remove existing attendance for this date if any
+        student.attendance = student.attendance.filter(a => 
+          a.date.toISOString().split('T')[0] !== date
+        );
+        
+        student.attendance.push({
+          date,
+          status,
+          markedBy: req.user.id
+        });
+        
+        await student.save();
+      }
     });
-    await performance.save();
-    res.status(201).json(performance);
+
+    await Promise.all(updatePromises);
+    
+    res.status(201).json({ message: 'Attendance recorded successfully' });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-// Mark attendance
-exports.markAttendance = async (req, res) => {
+// Get students by class
+exports.getStudentsByClass = async (req, res) => {
   try {
-    const { date, students } = req.body; // students = [{ studentId, status }]
-    const attendanceRecords = students.map(student => ({
-      student: student.studentId,
-      teacher: req.user.id,
-      date: new Date(date),
-      status: student.status
+    const students = await Student.find({ class: req.params.class })
+      .select('name rollNumber performances attendance')
+      .lean();
+
+    const studentsWithPerformance = students.map(student => ({
+      ...student,
+      totalCredit: student.performances
+        .filter(p => p.type === 'credit')
+        .reduce((sum, p) => sum + p.marks, 0),
+      totalMinus: student.performances
+        .filter(p => p.type === 'minus')
+        .reduce((sum, p) => sum + p.marks, 0)
     }));
-    await Attendance.insertMany(attendanceRecords);
-    res.status(201).json({ message: 'Attendance recorded successfully' });
+
+    res.json(studentsWithPerformance);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 };

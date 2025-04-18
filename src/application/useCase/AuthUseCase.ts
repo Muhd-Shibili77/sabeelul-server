@@ -19,4 +19,28 @@ export class AuthUseCase {
         return { accessToken, refreshToken };
         
     }
+    async userLogin(login: string, password: string) {
+        
+        const teacher = await this.authRepository.findTeacher(login);
+        const student = await this.authRepository.findStudent(login);
+    
+        const account = teacher || student;
+        if (!account) {
+            throw new Error("User not found");
+        }
+    
+        const isPasswordValid = await bcrypt.compare(password, account.password);
+        if (!isPasswordValid) {
+            throw new Error("Invalid password");
+        }
+    
+        const role = teacher ? 'Teacher' : 'Student';
+    
+        const accessToken = jwtService.generateAccessToken(account.id, role);
+        const refreshToken = jwtService.generateRefreshToken(account.id, role);
+    
+        return { accessToken, refreshToken, role };
+    }
+    
+    
 }

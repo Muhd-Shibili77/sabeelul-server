@@ -11,6 +11,9 @@ const router = Router();
 router.post('/admin/login',async (req: Request, res: Response) => {
     await authController.adminLogin(req, res)
 })
+router.post('/login',async (req: Request, res: Response) => {
+    await authController.userLogin(req, res)
+})
 
 
 export default router

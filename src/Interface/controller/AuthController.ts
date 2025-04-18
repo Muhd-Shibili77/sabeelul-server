@@ -8,12 +8,21 @@ export class AuthController {
   async adminLogin(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
-      const reponse = await this.authUseCase.adminLogin(email, password);
+      const response = await this.authUseCase.adminLogin(email, password);
+
+      res.cookie("refreshToken", response.refreshToken, {
+        httpOnly: true,
+        secure:true,
+        sameSite: "strict",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      
       return res.status(StatusCode.OK).json({
         success: true,
         message: "Login successful",
-        reponse,
-        token: reponse.accessToken,
+        response,
+        token: response.accessToken,
       });
     } catch (error: any) {
       console.error(error);

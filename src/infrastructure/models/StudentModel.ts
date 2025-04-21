@@ -10,6 +10,7 @@ export interface IStudent extends Document{
     classId:string,
     guardianName:string,
     profileImage:string,
+    isDeleted?:boolean
 }
 
 const studentSchema = new Schema({
@@ -49,9 +50,13 @@ const studentSchema = new Schema({
     profileImage:{
         type:String,
         required:true
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 },{ timestamps:true})
 
-const StudentModel = mongoose.model<IStudent>('Teacher',studentSchema)
+const StudentModel = mongoose.model<IStudent>('Student',studentSchema)
 
 export default StudentModel

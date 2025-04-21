@@ -7,6 +7,7 @@ class Teacher{
     public registerNo!:string
     public email!:string
     public profileImage!:string
+    public isDeleted!:boolean
 
     constructor(data:Partial<Teacher>){
         Object.assign(this,data)

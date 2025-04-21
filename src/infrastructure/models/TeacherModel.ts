@@ -8,6 +8,7 @@ export interface ITeacher extends Document{
     email:string,
     password:string,
     profileImage:string,
+    isDeleted?:boolean
 }
 
 const teacherSchema = new Schema({
@@ -38,6 +39,10 @@ const teacherSchema = new Schema({
     profileImage:{
         type:String,
         required:true
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false
     }
 },{ timestamps:true})
 

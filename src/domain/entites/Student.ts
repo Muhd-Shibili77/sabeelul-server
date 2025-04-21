@@ -9,6 +9,7 @@ class Student{
     public classId!:string
     public guardianName!:string
     public profileImage!:string
+    public isDeleted!:boolean
 
     constructor(data:Partial<Student>){
         Object.assign(this,data)

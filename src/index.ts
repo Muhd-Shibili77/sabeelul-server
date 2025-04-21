@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./infrastructure/config/DB";
 import AuthRoute from "./Interface/routes/AuthRoute";
+import AdminRoute from "./Interface/routes/AdminRoute";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,7 @@ app.use(
 connectDB()
 
 app.use("/auth", AuthRoute);
+app.use("/admin", AdminRoute);
 
 app.get("/", (req, res) => {
   res.send("server is working");

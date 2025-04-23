@@ -5,7 +5,7 @@ export interface IProgram extends Document {
   endDate: Date;
   criteria: string;
   isDeleted: boolean;
-  classes: mongoose.Types.ObjectId[];
+  classes: string[];
 }
 
 const programSchema = new Schema(

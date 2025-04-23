@@ -1,3 +1,4 @@
+import Class from "../../domain/entites/Class";
 import Student from "../../domain/entites/Student";
 import Teacher from "../../domain/entites/Teacher";
 import { IAdminRepository } from "../interface/IAdminRepository";
@@ -158,5 +159,48 @@ export class AdminUseCase{
        
         const updatedStudent = await this.adminRepository.updateStudent(id, student);
         return updatedStudent
+    }
+
+    async fetchClasses(query: object = {}, page?: number, limit?: number) {
+        return await this.adminRepository.fetchClasses(query, page, limit);
+    }
+      
+    
+    async addClass(name:string,subjects:string[]):Promise<Class>{
+        if(!name){
+            throw new Error('All required fields must be filled.')
+        }
+        const cls = new Class({
+            name:name,
+            subjects:subjects
+        })
+        const newClass = await this.adminRepository.addClass(cls)
+        return newClass
+    }
+    async updateClass(id:string,name:string,subjects:string[]){
+        if(!id){
+            throw new Error('Id is required')
+        }
+        if(!name || !subjects){
+            throw new Error('All required fields must be filled.')
+        }
+        const existClass = await this.adminRepository.findClassById(id)
+        if(!existClass){
+            throw new Error('Class is not found')
+        }
+        const cls = new Class({
+            name:name,
+            subjects:subjects
+        })
+        const updateClass = await this.adminRepository.editClass(id,cls)
+        return updateClass
+    }
+    async deleteClass(id:string):Promise<void>{
+        const cls= await this.adminRepository.findClassById(id)
+        if(!cls){
+            throw new Error('Class not found')
+        }
+        await this.adminRepository.deleteClass(id)
+
     }
 }

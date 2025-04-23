@@ -120,4 +120,66 @@ export class AdminController {
             res.status(500).json({ success: false, message: error.message });
         }
     }
+
+    async fetchClass(req:Request,res:Response){
+        try {
+            const search: string = (req.query.search as string) || "";
+            const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+            const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
+            const query = search
+            ? {
+                $or: [
+                  { name: { $regex: search, $options: "i" } },
+                  { isDeleted:false }
+                ]
+              }
+            : {};
+
+            const result = await this.adminUseCase.fetchClasses(query, page, limit);
+            res.status(200).json({ success: true,message:'Fetching of classes is successfull', data: result.classes, totalPages:result.totalPages ?? undefined });
+
+            
+        } catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+   
+
+    async addClass(req:Request,res:Response){
+        try {
+            const {name,subjects} = req.body
+            const newClass = await this.adminUseCase.addClass(name,subjects)
+            res.status(200).json({ success: true,message:'Adding of class is successfull', data: newClass });
+
+            
+        }  catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async updateClass(req:Request,res:Response){
+        try {
+            const id :string = req.params.id;
+            const {name,subjects}=req.body
+            const updatedClass = await this.adminUseCase.updateClass(id,name,subjects)
+            res.status(200).json({ success: true,message:'Updating of class is successfull', data: updatedClass });
+        }  catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+    async deleteClass(req:Request,res:Response){
+        try {
+            const id: string = req.params.id;
+            await this.adminUseCase.deleteClass(id)
+            res.status(200).json({ success: true,message:'Deleting of class is successfull' });
+        } catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 }

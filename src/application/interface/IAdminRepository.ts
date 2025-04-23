@@ -1,5 +1,7 @@
 import Student from "../../domain/entites/Student";
 import Teacher from "../../domain/entites/Teacher";
+import Class from "../../domain/entites/Class";
+import Program from "../../domain/entites/Program";
 
 export interface IAdminRepository {
     fetchTeachers(query:object,page:number,limit:number): Promise<{teachers: Teacher[], totalPages: number}>;
@@ -12,4 +14,10 @@ export interface IAdminRepository {
     findStudentById(id: string): Promise<Student | null>;
     updateTeacher(id: string, teacher: Teacher): Promise<Teacher>;
     updateStudent(id: string, student: Student): Promise<Student>;
+    addClass(classData: Class): Promise<Class>;
+    editClass(id: string, classData: Class): Promise<Class>;
+    deleteClass(id: string): Promise<void>;
+    findClassById(id:string):Promise<Class | null> ;
+    fetchClasses(query:object,page?:number,limit?:number): Promise<{classes: Class[], totalPages?: number}>;
+    
 }

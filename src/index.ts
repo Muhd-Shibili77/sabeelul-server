@@ -6,6 +6,7 @@ import connectDB from "./infrastructure/config/DB";
 import AuthRoute from "./Interface/routes/AuthRoute";
 import AdminRoute from "./Interface/routes/AdminRoute";
 import ClassRoute from "./Interface/routes/ClassRoute";
+import ProgramRoute from './Interface/routes/ProgramRoute'
 dotenv.config();
 const app = express();
 const URL = process.env.URL as string;
@@ -25,6 +26,7 @@ connectDB()
 app.use("/auth", AuthRoute);
 app.use("/admin", AdminRoute);
 app.use("/class", ClassRoute);
+app.use("/program", ProgramRoute);
 
 app.get("/", (req, res) => {
   res.send("server is working");

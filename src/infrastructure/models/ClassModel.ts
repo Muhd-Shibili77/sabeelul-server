@@ -4,6 +4,11 @@ export interface IClass extends Document {
   name: string;
   subjects: string[];
   isDeleted: boolean;
+  marks: {
+    academicYear: string;
+    item: string;
+    score: number;
+  }[];
 }
 
 const classSchema = new Schema<IClass>(
@@ -20,6 +25,19 @@ const classSchema = new Schema<IClass>(
       type: Boolean,
       default: false,
     },
+    marks: [
+      {
+        academicYear: {
+          type: String,
+        },
+        item: {
+          type: String,
+        },
+        score: {
+          type: Number,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

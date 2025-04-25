@@ -95,62 +95,7 @@ export class AdminRepository implements IAdminRepository {
     }
     return new Student(updatedStudent.toObject() as Student);
   }
-  async addClass(classData: Class): Promise<Class> {
-    const newClass = new ClassModel(classData);
-    await newClass.save();
-    return new Class(newClass.toObject() as Class);
-  }
-  async editClass(id: string, classData: Class): Promise<Class> {
-    const updatedClass = await ClassModel.findByIdAndUpdate(id, classData, {
-      new: true,
-    });
-    if (!updatedClass) {
-      throw new Error("Class not found");
-    }
-    return new Class(updatedClass.toObject() as Class);
-  }
-  async deleteClass(id: string): Promise<void> {
-    const cls = await ClassModel.findByIdAndUpdate(id, { isDeleted: true });
-    if (!cls) {
-      throw new Error("class is not found");
-    }
-  }
-  async findClassById(id: string): Promise<Class | null> {
-    const cls = await ClassModel.findById(id);
-    if (!cls) {
-      return null;
-    }
-    return new Class(cls.toObject() as Class);
-  }
-
-  async fetchClasses(
-    query: object,
-    page?: number,
-    limit?: number
-  ): Promise<{ classes: Class[]; totalPages?: number }> {
-    if (page && limit) {
-      const count = await ClassModel.countDocuments(query);
-      const totalPages = Math.ceil(count / limit);
-      const classes = await ClassModel.find(query)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .sort({ name: 1 });
-
-      return {
-        classes: classes.map(
-          (classData) => new Class(classData.toObject() as Class)
-        ),
-        totalPages,
-      };
-    } else {
-      const classes = await ClassModel.find(query).sort({ name: 1 });
-      return {
-        classes: classes.map(
-          (classData) => new Class(classData.toObject() as Class)
-        ),
-      };
-    }
-  }
+ 
   async addProgram(program: Program): Promise<Program> {
     const newProgram = new ProgramModel(program);
     await newProgram.save();

@@ -1,0 +1,102 @@
+import { IClassRepository } from "../../application/interface/IClassRepository";
+import Class from "../../domain/entites/Class";
+import ClassModel from "../models/ClassModel";
+
+export class ClassRepository implements IClassRepository {
+    async addClass(classData: Class): Promise<Class> {
+        const newClass = new ClassModel(classData);
+        await newClass.save();
+        return new Class(newClass.toObject() as Class);
+    }
+    async editClass(id: string, classData: Class): Promise<Class> {
+        const updatedClass = await ClassModel.findByIdAndUpdate(id, classData, { new: true });
+        if (!updatedClass) {
+            throw new Error("Class not found");
+        }
+        return new Class(updatedClass.toObject() as Class);
+    }
+    async deleteClass(id: string): Promise<void> {
+        const cls = await ClassModel.findByIdAndUpdate(id, { isDeleted: true });
+        if (!cls) {
+            throw new Error("class is not found");
+        }
+    }
+    async findClassById(id: string): Promise<Class | null> {
+        const cls = await ClassModel.findById(id);
+        if (!cls) {
+            return null;
+        }
+        return new Class(cls.toObject() as Class);
+    }
+
+    async fetchClasses(query: object, page?: number, limit?: number): Promise<{ classes: Class[]; totalPages?: number }> {
+        if (page && limit) {
+            const count = await ClassModel.countDocuments(query);
+            const totalPages = Math.ceil(count / limit);
+            const classes = await ClassModel.find(query)
+              .skip((page - 1) * limit)
+              .limit(limit)
+              .sort({ name: 1 });
+      
+            return {
+              classes: classes.map(
+                (classData) => new Class(classData.toObject() as Class)
+              ),
+              totalPages,
+            };
+          } else {
+            const classes = await ClassModel.find(query).sort({ name: 1 });
+            return {
+              classes: classes.map(
+                (classData) => new Class(classData.toObject() as Class)
+              ),
+            };
+          }
+    }
+
+    async addScore(id: string, academicYear: string, item: string, score: number): Promise<Class> {
+        const cls = await ClassModel.findById(id);
+        if (!cls) {
+            throw new Error("Class not found");
+        }
+        const updatedClass = await ClassModel.findByIdAndUpdate(
+            id,
+            { $push: { marks: { academicYear, item, score } } },
+            { new: true }
+        );
+        if (!updatedClass) {
+            throw new Error("Class add score failed");
+        }
+        return new Class(updatedClass.toObject() as Class);
+    }
+    async editScore(id: string, academicYear: string, item: string, score: number): Promise<Class> {
+        const cls = await ClassModel.findById(id);
+        if (!cls) {
+            throw new Error("Class not found");
+        }
+        const updatedClass = await ClassModel.findOneAndUpdate(
+            { _id: id, "marks.academicYear": academicYear, "marks.item": item },
+            { $set: { "marks.$.score": score } },
+            { new: true }
+        );
+        if (!updatedClass) {
+            throw new Error("Class edit score failed");
+        }
+        return new Class(updatedClass.toObject() as Class);
+    }
+    async deleteScore(id: string, academicYear: string, item: string): Promise<Class> {
+        const cls = await ClassModel.findById(id);
+        if (!cls) {
+            throw new Error("Class not found");
+        }
+        const updatedClass = await ClassModel.findByIdAndUpdate(
+            id,
+            { $pull: { marks: { academicYear, item } } },
+            { new: true }
+        );
+        if (!updatedClass) {
+            throw new Error("Class delete score failed");
+        }
+        return new Class(updatedClass.toObject() as Class);
+    }
+}

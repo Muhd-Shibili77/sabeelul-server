@@ -41,21 +41,6 @@ router.route('/student/:id')
     await adminController.updateStudent(req, res)
 })
 
-router.route('/class')
-.get(async (req:Request,res:Response)=>{
-    await adminController.fetchClass(req,res)
-})
-.post(async(req:Request,res:Response)=>{
-    await adminController.addClass(req,res)
-})
-
-router.route('/class/:id')
-.delete(async (req:Request,res:Response)=>{
-    await adminController.deleteClass(req,res)
-})
-.put(async(req:Request,res:Response)=>{
-    await adminController.updateClass(req,res)
-})
 
 router.route('/program')
 .get(async (req:Request,res:Response)=>{

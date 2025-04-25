@@ -14,11 +14,6 @@ export interface IAdminRepository {
     findStudentById(id: string): Promise<Student | null>;
     updateTeacher(id: string, teacher: Teacher): Promise<Teacher>;
     updateStudent(id: string, student: Student): Promise<Student>;
-    addClass(classData: Class): Promise<Class>;
-    editClass(id: string, classData: Class): Promise<Class>;
-    deleteClass(id: string): Promise<void>;
-    findClassById(id:string):Promise<Class | null> ;
-    fetchClasses(query:object,page?:number,limit?:number): Promise<{classes: Class[], totalPages?: number}>;
     addProgram(program: Program): Promise<Program>;
     editProgram(id: string, program: Program): Promise<Program>;
     deleteProgram(id: string): Promise<void>;

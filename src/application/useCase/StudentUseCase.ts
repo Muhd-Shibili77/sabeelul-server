@@ -130,4 +130,41 @@ export class StudentUseCase {
     );
     return updatedStudent;
   }
+
+  async findByAdmissinNo(admissionNo:string):Promise<Student>{
+      if(!admissionNo){
+        throw new Error('Admission No required')
+      }
+
+      const student = await this.studentRepository.findByAdNo(admissionNo)
+
+      if(!student){
+        throw new Error('student not found')
+      }
+
+      return student 
+  }
+  async addExtraScore(id:string,academicYear:string,programName:string,mark:number):Promise<Student>{
+      if(!id){
+        throw new Error('id is required')
+      }
+      if(!academicYear){
+        throw new Error('academicYear is required')
+      }
+      if(!programName){
+        throw new Error('programName is required')
+      }
+      if(!mark){
+        throw new Error('mark is required')
+      }
+      if(mark <= 0){
+        throw new Error('mark is must be greater than zero')
+      }
+
+      const student = await this.studentRepository.addExtraScore(id,academicYear,programName,mark)
+      if(!student){
+        throw new Error('score is not updated to student')
+      }
+      return student
+  }
 }

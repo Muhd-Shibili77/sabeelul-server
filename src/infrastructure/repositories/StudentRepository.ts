@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { IStudentRepository } from "../../application/interface/IStudentRepository";
 import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
@@ -45,5 +46,34 @@ export class StudentRepository implements IStudentRepository {
       ),
       totalPages: totalPages,
     };
+  }
+  async findByAdNo(admissionNo: string): Promise<Student | null > {
+    const student = await StudentModel.findOne({admissionNo:admissionNo})
+    if(!student){
+       return null
+    }
+    return new Student(student.toObject() as Student); 
+  }
+  async addExtraScore(id: string,academicYear:string, programName: string, mark: number): Promise<Student> {
+    const updateData: any = { academicYear,mark };
+    if (mongoose.Types.ObjectId.isValid(programName)) {
+      updateData.programId = programName;
+    } else {
+      updateData.customProgramName = programName;
+    }
+
+    const updatedStudent = await StudentModel.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          extraMarks: updateData
+        }
+      },
+      { new: true }
+    );
+      if(!updatedStudent){
+        throw new Error('student add score failed')
+      }
+      return new Student(updatedStudent.toObject() as Student)
   }
 }

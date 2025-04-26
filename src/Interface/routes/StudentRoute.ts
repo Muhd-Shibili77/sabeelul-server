@@ -23,6 +23,14 @@ router.route('/:id')
 .put(async (req: Request, res: Response) => {
     await studentController.updateStudent(req, res)
 })
+.get(async(req:Request,res:Response)=>{
+    await studentController.findByAdmNo(req,res)
+})
+
+router.route('/score/:id')
+.post(async(req:Request,res:Response)=>{
+    await studentController.addExtraScore(req,res)
+})
 
 
 

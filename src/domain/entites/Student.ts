@@ -10,6 +10,12 @@ class Student{
     public guardianName!:string
     public profileImage!:string
     public isDeleted!:boolean
+    public extraMarks?:{
+        academicYear:string,
+        programId:string,
+        customProgramName:string,
+        mark:number,
+    }[]
 
     constructor(data:Partial<Student>){
         Object.assign(this,data)

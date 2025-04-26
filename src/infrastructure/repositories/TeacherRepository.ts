@@ -1,14 +1,10 @@
-import { IAdminRepository } from "../../application/interface/IAdminRepository";
-import Student from "../../domain/entites/Student";
+import { ITeacherRepository } from "../../application/interface/ITeacherRepository";
 import Teacher from "../../domain/entites/Teacher";
-import Class from "../../domain/entites/Class";
-import Program from "../../domain/entites/Program";
-import StudentModel from "../models/StudentModel";
 import TeacherModel from "../models/TeacherModel";
-import ClassModel from "../models/ClassModel";
-import ProgramModel from "../models/ProgramModel";
 
-export class AdminRepository implements IAdminRepository {
+
+export class TeacherRepository implements ITeacherRepository {
+  
   async fetchTeachers(
     query: object,
     page: number,

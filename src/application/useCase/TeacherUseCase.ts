@@ -1,16 +1,14 @@
-import Class from "../../domain/entites/Class";
-import Program from "../../domain/entites/Program";
-import Student from "../../domain/entites/Student";
+
 import Teacher from "../../domain/entites/Teacher";
-import { IAdminRepository } from "../interface/IAdminRepository";
+import { ITeacherRepository } from "../interface/ITeacherRepository";
 import bcrypt from "bcrypt";
 import validator from 'validator';
 
-export class AdminUseCase{
-    constructor(private adminRepository: IAdminRepository) {}
+export class TeacherUseCase{
+    constructor(private teacherRepository: ITeacherRepository) {}
 
     async fetchTeachers(query:object,page:number,limit:number) {
-        const teachers = await this.adminRepository.fetchTeachers(query,page,limit);
+        const teachers = await this.teacherRepository.fetchTeachers(query,page,limit);
         return teachers
     }
     
@@ -40,21 +38,21 @@ export class AdminUseCase{
             profileImage:profile
         });
        
-        const newTeacher = await this.adminRepository.addTeacher(teacher);
+        const newTeacher = await this.teacherRepository.addTeacher(teacher);
         return newTeacher
     }
 
    
 
     async deleteTeacher(id:string): Promise<void> {
-        const teacher = await this.adminRepository.findTeacherById(id);
+        const teacher = await this.teacherRepository.findTeacherById(id);
         if (!teacher) {
             throw new Error('Teacher not found.');
         }
         if(teacher.isDeleted){
             throw new Error('Teacher already deleted.');
         }
-        await this.adminRepository.deleteTeacher(id);
+        await this.teacherRepository.deleteTeacher(id);
     }
 
    
@@ -84,7 +82,7 @@ export class AdminUseCase{
             profileImage:profile
         });
        
-        const updatedTeacher = await this.adminRepository.updateTeacher(id, teacher);
+        const updatedTeacher = await this.teacherRepository.updateTeacher(id, teacher);
         return updatedTeacher
     }
 

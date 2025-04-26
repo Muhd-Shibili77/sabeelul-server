@@ -4,7 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./infrastructure/config/DB";
 import AuthRoute from "./Interface/routes/AuthRoute";
-import AdminRoute from "./Interface/routes/AdminRoute";
+import TeacherRoute from "./Interface/routes/TeacherRoute";
 import ClassRoute from "./Interface/routes/ClassRoute";
 import ProgramRoute from './Interface/routes/ProgramRoute';
 import StudentRoute from './Interface/routes/StudentRoute';
@@ -25,7 +25,7 @@ app.use(
 connectDB()
 
 app.use("/auth", AuthRoute);
-app.use("/admin", AdminRoute);
+app.use("/teacher", TeacherRoute);
 app.use("/class", ClassRoute);
 app.use("/program", ProgramRoute);
 app.use("/student", StudentRoute);

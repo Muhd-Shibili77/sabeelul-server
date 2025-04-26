@@ -1,7 +1,9 @@
-import { AdminUseCase } from "../../application/useCase/AdminUseCase";
+import { TeacherUseCase } from "../../application/useCase/TeacherUseCase";
 import { Request,Response } from "express";
-export class AdminController {
-    constructor(private adminUseCase: AdminUseCase) {}
+
+export class TeacherController {
+
+    constructor(private teacherUseCase: TeacherUseCase) {}
     async fetchTeachers(req: Request, res: Response) {
         try {
             const search: string = (req.query.search as string) || "";
@@ -18,7 +20,7 @@ export class AdminController {
             : {};
           
 
-            const {teachers,totalPages} = await this.adminUseCase.fetchTeachers(query,page,limit)
+            const {teachers,totalPages} = await this.teacherUseCase.fetchTeachers(query,page,limit)
             res.status(200).json({ success: true,message:'Fetching of teacher is successfull', data: teachers, totalPages:totalPages });
             
         } catch (error: any) {
@@ -31,7 +33,7 @@ export class AdminController {
     async addTeacher(req: Request, res: Response) {
         try {
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
-            const newTeacher = await this.adminUseCase.addTeacher(name,phone,address, email, password, registerNumber,profile)
+            const newTeacher = await this.teacherUseCase.addTeacher(name,phone,address, email, password, registerNumber,profile)
             res.status(200).json({ success: true,message:'Adding of teacher is successfull', data: newTeacher });
             
         } catch (error: any) {
@@ -43,7 +45,7 @@ export class AdminController {
     async deleteTeacher(req: Request, res: Response) {
         try {
             const id: string = req.params.id;
-            await this.adminUseCase.deleteTeacher(id);
+            await this.teacherUseCase.deleteTeacher(id);
             res.status(200).json({ success: true,message:'Deleting of teacher is successfull' });
             
         } catch (error: any) {
@@ -56,7 +58,7 @@ export class AdminController {
         try {
             const id: string = req.params.id;
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
-            const updatedTeacher = await this.adminUseCase.updateTeacher(id,name,phone,address, email, password, registerNumber,profile)
+            const updatedTeacher = await this.teacherUseCase.updateTeacher(id,name,phone,address, email, password, registerNumber,profile)
             res.status(200).json({ success: true,message:'Updating of teacher is successfull', data: updatedTeacher });
             
         } catch (error: any) {

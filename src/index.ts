@@ -6,7 +6,8 @@ import connectDB from "./infrastructure/config/DB";
 import AuthRoute from "./Interface/routes/AuthRoute";
 import AdminRoute from "./Interface/routes/AdminRoute";
 import ClassRoute from "./Interface/routes/ClassRoute";
-import ProgramRoute from './Interface/routes/ProgramRoute'
+import ProgramRoute from './Interface/routes/ProgramRoute';
+import StudentRoute from './Interface/routes/StudentRoute';
 dotenv.config();
 const app = express();
 const URL = process.env.URL as string;
@@ -27,6 +28,7 @@ app.use("/auth", AuthRoute);
 app.use("/admin", AdminRoute);
 app.use("/class", ClassRoute);
 app.use("/program", ProgramRoute);
+app.use("/student", StudentRoute);
 
 app.get("/", (req, res) => {
   res.send("server is working");

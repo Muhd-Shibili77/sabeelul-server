@@ -25,20 +25,6 @@ router.route('/teacher/:id')
 })
 
 
-router.route('/student')
-.get(async (req: Request, res: Response) => {
-    await adminController.fetchStudents(req, res)
-})
-.post(async (req: Request, res: Response) => {
-    await adminController.addStudent(req, res)
-})
 
-router.route('/student/:id')
-.delete(async (req: Request, res: Response) => {
-    await adminController.deleteStudent(req, res)
-})
-.put(async (req: Request, res: Response) => {
-    await adminController.updateStudent(req, res)
-})
 
 export default router;

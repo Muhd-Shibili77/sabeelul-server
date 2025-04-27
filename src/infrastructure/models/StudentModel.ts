@@ -18,13 +18,18 @@ export interface IStudent extends Document{
         programId?: mongoose.Types.ObjectId;
         customProgramName?: string;
         mark: number;
-    }[];
+    }[],
+    mentorMarks?:{
+        academicYear:string;
+        mark:number
+    }[]
 }
 
 const studentSchema = new Schema({
     admissionNo:{
         type:String,
-        required:true
+        required:true,
+        unique: true
     },
     name:{
         type:String,
@@ -80,7 +85,15 @@ const studentSchema = new Schema({
             type: Number,
             required: true
         }
-    }]
+    }],
+   mentorMarks:[{
+        academicYear:{
+            type:String,
+        },
+        mark:{
+            type:Number,
+        }  
+   }] 
     
 },{ timestamps:true})
 

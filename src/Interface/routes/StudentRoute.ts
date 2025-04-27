@@ -32,6 +32,11 @@ router.route('/score/:id')
     await studentController.addExtraScore(req,res)
 })
 
+router.route('/mentor/:id')
+.post(async (req:Request,res:Response)=>{
+    await studentController.addMentorScore(req,res)
+})
+
 
 
 export default router

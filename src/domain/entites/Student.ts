@@ -16,6 +16,10 @@ class Student{
         customProgramName:string,
         mark:number,
     }[]
+    public mentorMarks?:{
+        academicYear:string,
+        mark:number
+    }[]
 
     constructor(data:Partial<Student>){
         Object.assign(this,data)

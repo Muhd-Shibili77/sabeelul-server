@@ -87,4 +87,16 @@ export class StudentController{
         }
     }
 
+    async addMentorScore(req:Request,res:Response){
+        try {
+            const id:string  = req.params.id;
+            const {academicYear,mark} = req.body
+            const student = await this.studentUsecase.addMentorScore(id,academicYear,mark)
+            res.status(200).json({success:true,message:'add mentor mark to student is successful',data:student})
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
+
 }

@@ -76,4 +76,20 @@ export class StudentRepository implements IStudentRepository {
       }
       return new Student(updatedStudent.toObject() as Student)
   }
+
+  async addMentorScore(id: string, academicYear: string, mark: number): Promise<Student> {
+      const student = await StudentModel.findById(id)
+      if(!student){
+        throw new Error('student not found')
+      }
+      const updatedStudent = await StudentModel.findByIdAndUpdate(
+        id,
+        {$push:{mentorMarks:{academicYear,mark}}},
+        {new:true}
+      )
+      if(!updatedStudent){
+        throw new Error('Adding mentor failed')
+      }
+      return new Student(updatedStudent.toObject() as Student)
+  }
 }

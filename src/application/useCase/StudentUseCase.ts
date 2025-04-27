@@ -167,4 +167,24 @@ export class StudentUseCase {
       }
       return student
   }
+
+  async addMentorScore(id:string,academicYear:string,mark:number):Promise<Student>{
+    if(!id){
+      throw new Error('id is required')
+    }
+    if(!academicYear){
+      throw new Error('academicYear is required')
+    }
+    if(!mark){
+      throw new Error('mark is required')
+    }
+    if(mark <= 0){
+      throw new Error('mark is must be greater than zero')
+    }
+    const student = await this.studentRepository.addMentorScore(id,academicYear,mark)
+    if(!student){
+      throw new Error('Adding mentor failed')
+    }
+    return student
+  }
 }

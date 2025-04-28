@@ -20,6 +20,15 @@ class Student{
         academicYear:string,
         mark:number
     }[]
+    public cceMarks?:{
+        academicYear: string;
+        className:string,
+        subjects:{
+            subjectName:string,
+            phase:string,
+            mark:number
+        }[]
+    }[]
 
     constructor(data:Partial<Student>){
         Object.assign(this,data)

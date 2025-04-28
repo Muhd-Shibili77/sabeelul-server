@@ -36,6 +36,10 @@ router.route('/mentor/:id')
 .post(async (req:Request,res:Response)=>{
     await studentController.addMentorScore(req,res)
 })
+router.route('/cce/:id')
+.post(async (req:Request,res:Response)=>{
+    await studentController.addCceScore(req,res)
+})
 
 
 

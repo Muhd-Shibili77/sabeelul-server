@@ -98,5 +98,17 @@ export class StudentController{
             res.status(500).json({ success: false, message: error.message }); 
         }
     }
+    async addCceScore(req:Request,res:Response){
+        try {
+            const id:string = req.params.id
+            const {academicYear,className,subjectName,phase,mark}  = req.body
+            const student = await this.studentUsecase.addCceScore(id,academicYear,className,subjectName,phase,mark)
+            res.status(200).json({success:true,message:'add CCE mark to student is successful',data:student})
+
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
 
 }

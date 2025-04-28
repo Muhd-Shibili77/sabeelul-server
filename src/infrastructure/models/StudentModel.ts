@@ -22,6 +22,15 @@ export interface IStudent extends Document{
     mentorMarks?:{
         academicYear:string;
         mark:number
+    }[],
+    cceMarks?:{
+        academicYear: string;
+        className:string,
+        subjects:{
+            subjectName:string,
+            phase:string,
+            mark:number
+        }[]  
     }[]
 }
 
@@ -93,6 +102,29 @@ const studentSchema = new Schema({
         mark:{
             type:Number,
         }  
+   }],
+   cceMarks:[{
+        academicYear: {
+            type: String,
+        },
+        className: {
+            type: String,
+            default: null
+        },
+        subjects: [{
+            subjectName: {
+                type: String,
+
+            },
+            phase: {
+                type: String,
+
+            },
+            mark: {
+                type: Number,
+
+            }
+        }]
    }] 
     
 },{ timestamps:true})

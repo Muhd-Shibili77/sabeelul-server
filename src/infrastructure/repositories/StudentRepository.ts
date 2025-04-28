@@ -92,4 +92,34 @@ export class StudentRepository implements IStudentRepository {
       }
       return new Student(updatedStudent.toObject() as Student)
   }
+  async addCceScore(id: string, academicYear: string, className: string, subjectName: string,phase:string, mark: number): Promise<Student> {
+    const student = await StudentModel.findById(id);
+    if (!student) {
+      throw new Error("Student not found");
+     }
+    const academicRecord = student.cceMarks?.find(record => record.academicYear === academicYear);
+
+    if(academicRecord){
+      academicRecord.subjects.push({
+        subjectName,
+        phase,
+        mark
+       });
+    }else{
+      student.cceMarks?.push({
+        academicYear,
+        className,
+        subjects: [{
+            subjectName,
+            phase,
+            mark
+        }]
+    });
+    }
+    await student.save();
+
+    return new Student(student.toObject() as Student)
+
+
+  }
 }

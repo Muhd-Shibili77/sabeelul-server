@@ -123,6 +123,11 @@ export class StudentRepository implements IStudentRepository {
 
   }
 
+  async fetchProfile(id: string): Promise<Student> {
+      const student = await StudentModel.findById(id)
+      return new Student(student?.toObject() as Student)
+  }
+
   async countStudent(): Promise<number> {
     const students = await StudentModel.countDocuments({isDeleted:false})
     return students

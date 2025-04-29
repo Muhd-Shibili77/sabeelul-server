@@ -221,4 +221,14 @@ export class StudentUseCase {
     }
     return updatedStudent
   }
+  async fetchProfile(id:string){
+     if(!id){
+        throw new Error('id is required')
+     }
+     const student = await this.studentRepository.fetchProfile(id)
+     if(student.isDeleted){
+        throw new Error('student is deleted')
+     }
+     return student
+  }
 }

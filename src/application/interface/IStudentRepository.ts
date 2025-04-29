@@ -10,6 +10,7 @@ export interface IStudentRepository{
     addExtraScore(id:string,academicYear:string,programName:string,mark:number):Promise<Student>
     addMentorScore(id:string,academicYear:string,mark:number):Promise<Student>
     addCceScore(id:string,academicYear:string,className:string,subjectName:string,phase:string,mark:number):Promise<Student>
+    fetchProfile(id:string):Promise<Student>
     countStudent():Promise<number>;
     bestPerfomerClass():Promise<Student[]>
     getBestPerformingClass():Promise<void>

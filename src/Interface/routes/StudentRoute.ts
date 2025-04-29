@@ -40,7 +40,9 @@ router.route('/cce/:id')
 .post(async (req:Request,res:Response)=>{
     await studentController.addCceScore(req,res)
 })
-
+router.get('/profile',async(req:Request,res:Response)=>{
+    await studentController.fetchProfile(req,res)
+})
 
 
 export default router

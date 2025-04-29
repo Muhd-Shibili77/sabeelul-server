@@ -25,6 +25,10 @@ router.route('/:id')
     await teacherController.updateTeacher(req, res)
 })
 
+router.get('/profile',async (req:Request,res:Response)=>{
+    await teacherController.fetchProfile(req,res)
+})
+
 
 
 

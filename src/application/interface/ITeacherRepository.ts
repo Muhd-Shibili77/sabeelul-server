@@ -9,4 +9,5 @@ export interface ITeacherRepository {
     findTeacherById(id: string): Promise<Teacher | null>;
     updateTeacher(id: string, teacher: Teacher): Promise<Teacher>;
     countTeacher():Promise<number>
+    fetchProfile(id:string):Promise<Teacher>
 }

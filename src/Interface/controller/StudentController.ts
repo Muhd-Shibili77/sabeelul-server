@@ -111,4 +111,16 @@ export class StudentController{
         }
     }
 
+    async fetchProfile(req:Request,res:Response){
+        try {
+            const id:string = req.params.id
+            const student = await this.studentUsecase.fetchProfile(id)
+            res.status(200).json({success:true,message:'fetching profile successfull',data:student})
+            
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
+
 }

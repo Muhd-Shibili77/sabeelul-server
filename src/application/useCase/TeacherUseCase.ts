@@ -86,6 +86,17 @@ export class TeacherUseCase{
         return updatedTeacher
     }
 
+    async fetchProfile(id:string):Promise<Teacher>{
+        if(!id){
+            throw new Error('Id is required')
+        }
+
+        const teacher = await this.teacherRepository.fetchProfile(id)
+
+        return teacher
+
+    }
+
     
 
     

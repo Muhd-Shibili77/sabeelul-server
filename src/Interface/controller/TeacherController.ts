@@ -67,5 +67,15 @@ export class TeacherController {
         }
     }
 
+    async fetchProfile(req: Request, res: Response){
+        try {
+            const id:string = req.params.id
+            const teacher = await this.teacherUseCase.fetchProfile(id)
+            res.status(200).json({ success: true,message:'Updating of teacher is successfull', data: teacher });
+        } catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
    
 }

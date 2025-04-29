@@ -58,4 +58,8 @@ export class TeacherRepository implements ITeacherRepository {
       const teachers = await TeacherModel.countDocuments({isDeleted:false})
       return teachers
   }
+  async fetchProfile(id: string): Promise<Teacher> {
+      const teacher = await TeacherModel.findById(id)
+      return new Teacher(teacher?.toObject() as Teacher)
+  }
 }

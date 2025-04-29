@@ -54,4 +54,8 @@ export class TeacherRepository implements ITeacherRepository {
     return new Teacher(updatedTeacher.toObject() as Teacher);
   }
   
+  async countTeacher(): Promise<number> {
+      const teachers = await TeacherModel.countDocuments({isDeleted:false})
+      return teachers
+  }
 }

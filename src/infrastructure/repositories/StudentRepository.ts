@@ -1,8 +1,8 @@
-import mongoose from "mongoose";
+import mongoose,{PipelineStage} from "mongoose";
 import { IStudentRepository } from "../../application/interface/IStudentRepository";
 import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
-
+import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 export class StudentRepository implements IStudentRepository {
     
   async addStudent(student: Student): Promise<Student> {
@@ -122,4 +122,283 @@ export class StudentRepository implements IStudentRepository {
 
 
   }
+
+  async countStudent(): Promise<number> {
+    const students = await StudentModel.countDocuments({isDeleted:false})
+    return students
+  }
+
+  async bestPerfomerClass(): Promise<Student[]> {
+
+    const academicYear = getCurrentAcademicYear()
+    const bestStudentsPipeline: PipelineStage[] = [
+      {
+        $match: {
+          isDeleted: false
+        }
+      },
+      {
+        $addFields: {
+          totalExtraMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$extraMarks",
+                    as: "em",
+                    cond: { $eq: ["$$em.academicYear", academicYear] }
+                  }
+                },
+                as: "emf",
+                in: "$$emf.mark"
+              }
+            }
+          },
+          totalMentorMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$mentorMarks",
+                    as: "mm",
+                    cond: { $eq: ["$$mm.academicYear", academicYear] }
+                  }
+                },
+                as: "mmf",
+                in: "$$mmf.mark"
+              }
+            }
+          },
+          totalCceScore: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$cceMarks",
+                    as: "cce",
+                    cond: { $eq: ["$$cce.academicYear", academicYear] }
+                  }
+                },
+                as: "ccef",
+                in: {
+                  $sum: {
+                    $map: {
+                      input: "$$ccef.subjects",
+                      as: "sub",
+                      in: {
+                        $multiply: ["$$sub.mark", 0.2]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          performanceScore: {
+            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"]
+          }
+        }
+      },
+      {
+        $sort: { classId: 1, performanceScore: -1 }
+      },
+      {
+        $group: {
+          _id: "$classId",
+          bestStudent: { $first: "$$ROOT" }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: "$bestStudent" }
+      },
+      {
+        $lookup: {
+          from: "classes", // replace with your actual collection name for classes
+          localField: "classId",
+          foreignField: "_id",
+          as: "classId"
+        }
+      },
+      {
+        $unwind: "$classId"
+      },
+      {
+        $project: {
+          name: 1,
+          performanceScore: 1,
+          classId: 1 // now this will contain the populated class object
+        }
+      }
+    ];
+    
+
+    const result = await StudentModel.aggregate(bestStudentsPipeline);
+    return result 
+  }
+
+
+
+async getBestPerformingClass():Promise<void> {
+  const academicYear = getCurrentAcademicYear(); // your function to get year
+
+  const result = await StudentModel.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+      },
+    },
+    {
+      $lookup: {
+        from: 'classes',
+        localField: 'classId',
+        foreignField: '_id',
+        as: 'classInfo',
+      },
+    },
+    {
+      $unwind: {
+        path: '$classInfo',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$extraMarks',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$mentorMarks',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$cceMarks',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: '$cceMarks.subjects',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        extraMark: {
+          $cond: [
+            { $eq: ['$extraMarks.academicYear', academicYear] },
+            { $ifNull: ['$extraMarks.mark', 0] },
+            0,
+          ],
+        },
+        mentorMark: {
+          $cond: [
+            { $eq: ['$mentorMarks.academicYear', academicYear] },
+            { $ifNull: ['$mentorMarks.mark', 0] },
+            0,
+          ],
+        },
+        cceMark: {
+          $cond: [
+            { $eq: ['$cceMarks.academicYear', academicYear] },
+            {
+              $multiply: [
+                { $ifNull: ['$cceMarks.subjects.mark', 0] },
+                0.2,
+              ],
+            },
+            0,
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          studentId: '$_id',
+          classId: '$classId',
+          className: '$classInfo.name',
+        },
+        totalExtraMark: { $sum: '$extraMark' },
+        totalMentorMark: { $sum: '$mentorMark' },
+        totalCceMark: { $sum: '$cceMark' },
+        classInfo: { $first: '$classInfo' },
+      },
+    },
+    {
+      $addFields: {
+        studentTotalScore: {
+          $add: ['$totalExtraMark', '$totalMentorMark', '$totalCceMark'],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: '$_id.classId',
+        className: { $first: '$_id.className' },
+        totalStudentScore: { $sum: '$studentTotalScore' },
+        classInfo: { $first: '$classInfo' },
+      },
+    },
+    {
+      $addFields: {
+        classScore: {
+          $ifNull: [
+            {
+              $sum: {
+                $map: {
+                  input: {
+                    $filter: {
+                      input: '$classInfo.marks',
+                      as: 'm',
+                      cond: { $eq: ['$$m.academicYear', academicYear] },
+                    },
+                  },
+                  as: 'filteredMark',
+                  in: '$$filteredMark.score',
+                },
+              },
+            },
+            0,
+          ],
+        },
+      },
+    },
+    {
+      $addFields: {
+        totalScore: {
+          $add: ['$totalStudentScore', '$classScore'],
+        },
+      },
+    },
+    {
+      $sort: {
+        totalScore: -1,
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        classId: '$_id',
+        className: 1,
+        totalStudentScore: 1,
+        classScore: 1,
+        totalScore: 1,
+      },
+    },
+    {
+      $limit: 1, // top-performing class
+    },
+  ]);
+
+  return result[0]; // top class info
+}
+
 }

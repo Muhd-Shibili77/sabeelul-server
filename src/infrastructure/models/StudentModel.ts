@@ -1,4 +1,4 @@
-import mongoose,{Schema,Document} from "mongoose";
+import mongoose,{Schema,Document, Model} from "mongoose";
 
 
 
@@ -129,6 +129,6 @@ const studentSchema = new Schema({
     
 },{ timestamps:true})
 
-const StudentModel = mongoose.model<IStudent>('Student',studentSchema)
+const StudentModel: Model<IStudent> = mongoose.model<IStudent>('Student',studentSchema)
 
 export default StudentModel

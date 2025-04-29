@@ -8,5 +8,5 @@ export interface ITeacherRepository {
     deleteTeacher(id: string): Promise<void>;
     findTeacherById(id: string): Promise<Teacher | null>;
     updateTeacher(id: string, teacher: Teacher): Promise<Teacher>;
-    
+    countTeacher():Promise<number>
 }

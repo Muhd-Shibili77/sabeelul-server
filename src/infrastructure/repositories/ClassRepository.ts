@@ -1,5 +1,6 @@
 import { IClassRepository } from "../../application/interface/IClassRepository";
 import Class from "../../domain/entites/Class";
+import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import ClassModel from "../models/ClassModel";
 
 export class ClassRepository implements IClassRepository {
@@ -98,5 +99,29 @@ export class ClassRepository implements IClassRepository {
             throw new Error("Class delete score failed");
         }
         return new Class(updatedClass.toObject() as Class);
+    }
+
+    async totalScore(): Promise<Partial<Class>[]> {
+        const academicYear = getCurrentAcademicYear()
+        const classes = await ClassModel.find(
+            {
+              'marks.academicYear': academicYear,
+              isDeleted: false
+            },
+            {
+              _id: 1,
+              name: 1,
+              marks: 1
+            }
+          ).lean();
+        
+          
+          const result = classes.map(cls => ({
+            _id: cls._id,
+            name: cls.name,
+            marks: cls.marks?.filter(mark => mark.academicYear === academicYear)
+          }));
+        
+          return result;
     }
 }

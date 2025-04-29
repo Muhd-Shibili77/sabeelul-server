@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IClass extends Document {
   name: string;
@@ -42,5 +42,5 @@ const classSchema = new Schema<IClass>(
   { timestamps: true }
 );
 
-const classModel = mongoose.model<IClass>("Class", classSchema);
+const classModel:Model<IClass> = mongoose.model<IClass>("Class", classSchema);
 export default classModel;

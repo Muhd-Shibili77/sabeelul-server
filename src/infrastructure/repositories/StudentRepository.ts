@@ -3,6 +3,7 @@ import { IStudentRepository } from "../../application/interface/IStudentReposito
 import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
+import { ClassPerformance } from "../../domain/types/classPerfromance";
 export class StudentRepository implements IStudentRepository {
     
   async addStudent(student: Student): Promise<Student> {
@@ -124,7 +125,7 @@ export class StudentRepository implements IStudentRepository {
   }
 
   async fetchProfile(id: string): Promise<Student> {
-      const student = await StudentModel.findById(id)
+      const student = await StudentModel.findById(id).populate('classId')
       return new Student(student?.toObject() as Student)
   }
 
@@ -247,7 +248,7 @@ export class StudentRepository implements IStudentRepository {
 
 
 
-async getBestPerformingClass():Promise<void> {
+async getBestPerformingClass():Promise<ClassPerformance[]> {
   const academicYear = getCurrentAcademicYear(); // your function to get year
 
   const result = await StudentModel.aggregate([
@@ -398,12 +399,10 @@ async getBestPerformingClass():Promise<void> {
         totalScore: 1,
       },
     },
-    {
-      $limit: 1, // top-performing class
-    },
+   
   ]);
 
-  return result[0]; // top class info
+  return result; // top class info
 }
 
 }

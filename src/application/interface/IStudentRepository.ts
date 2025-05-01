@@ -1,5 +1,5 @@
 import Student from "../../domain/entites/Student";
-
+import { ClassPerformance } from "../../domain/types/classPerfromance";
 export interface IStudentRepository{
     fetchStudents(query:object,page:number,limit:number): Promise<{students: Student[], totalPages: number}>;
     addStudent(student: Student): Promise<Student>;
@@ -13,5 +13,5 @@ export interface IStudentRepository{
     fetchProfile(id:string):Promise<Student>
     countStudent():Promise<number>;
     bestPerfomerClass():Promise<Student[]>
-    getBestPerformingClass():Promise<void>
+    getBestPerformingClass():Promise<ClassPerformance[]>
 }

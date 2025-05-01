@@ -12,8 +12,10 @@ export class AdminUseCase {
     const totalStudents = await this.studentRepository.countStudent()
     const totalTeachers = await this.teacherRepository.countTeacher()
     const performerInClass = await this.studentRepository.bestPerfomerClass()
-    const bestPerfomerClass = await this.studentRepository.getBestPerformingClass()
-    
+    const classAnalysis = await this.studentRepository.getBestPerformingClass();
+    const bestPerformerClass = classAnalysis[0]; 
+    return {totalStudents,totalTeachers,performerInClass,classAnalysis,bestPerformerClass}
+        
   }
 
 }

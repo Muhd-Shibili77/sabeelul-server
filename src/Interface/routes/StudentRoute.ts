@@ -43,6 +43,7 @@ router.route('/cce/:id')
 router.get('/profile',async(req:Request,res:Response)=>{
     await studentController.fetchProfile(req,res)
 })
+router.get('/dashboard')
 
 
 export default router

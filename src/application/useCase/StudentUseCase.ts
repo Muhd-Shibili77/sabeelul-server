@@ -231,4 +231,22 @@ export class StudentUseCase {
      }
      return student
   }
+
+  async dashboard(id:string){
+    if(!id){
+      throw new Error('id is required')
+    }
+    const student = await this.studentRepository.fetchProfile(id)
+    if(student.isDeleted){
+      throw new Error('student is deleted')
+    }
+    const details ={
+      name:student.name,
+      profileImage:student.profileImage,
+      class:student.classId,
+    }
+
+    return details
+
+  }
 }

@@ -125,7 +125,7 @@ export class StudentRepository implements IStudentRepository {
   }
 
   async fetchProfile(id: string): Promise<Student> {
-      const student = await StudentModel.findById(id).populate('classId')
+      const student = await StudentModel.findById(id).populate('classId').populate('extraMarks.programId').exec();
       return new Student(student?.toObject() as Student)
   }
 
@@ -249,7 +249,7 @@ export class StudentRepository implements IStudentRepository {
 
 
 async getBestPerformingClass():Promise<ClassPerformance[]> {
-  const academicYear = getCurrentAcademicYear(); // your function to get year
+  const academicYear = getCurrentAcademicYear();
 
   const result = await StudentModel.aggregate([
     {
@@ -402,7 +402,7 @@ async getBestPerformingClass():Promise<ClassPerformance[]> {
    
   ]);
 
-  return result; // top class info
+  return result; 
 }
 
 }

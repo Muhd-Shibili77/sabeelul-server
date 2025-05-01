@@ -43,7 +43,12 @@ router.route('/cce/:id')
 router.get('/profile',async(req:Request,res:Response)=>{
     await studentController.fetchProfile(req,res)
 })
-router.get('/dashboard')
+router.get('/dashboard',async(req:Request,res:Response)=>{
+    await studentController.dashboard(req,res)
+})
+router.get('/performance',async(req:Request,res:Response)=>{
+    await studentController.performance(req,res)
+})
 
 
 export default router

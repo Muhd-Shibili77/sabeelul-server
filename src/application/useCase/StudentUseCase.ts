@@ -1,4 +1,6 @@
+import Program from "../../domain/entites/Program";
 import Student from "../../domain/entites/Student";
+import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { IStudentRepository } from "../interface/IStudentRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
@@ -232,7 +234,9 @@ export class StudentUseCase {
      return student
   }
 
+
   async dashboard(id:string){
+    
     if(!id){
       throw new Error('id is required')
     }
@@ -240,13 +244,116 @@ export class StudentUseCase {
     if(student.isDeleted){
       throw new Error('student is deleted')
     }
+    const academicYear = getCurrentAcademicYear()
+
+    // Filter extraMarks by academic year and find latest (assuming order is not guaranteed)
+    const filteredExtraMarks = student.extraMarks
+    ?.filter(e => e.academicYear === academicYear)
+    .sort((a, b) => b.mark - a.mark); // sort by mark, or add timestamp if available
+
+    const latestExtra = filteredExtraMarks?.[0];
+
+    let latestAchievement = null;
+    if (latestExtra) {
+      if (latestExtra.programId && typeof latestExtra.programId === 'object') {
+        latestAchievement = (latestExtra.programId as Program).name;
+      } else if (latestExtra.customProgramName) {
+        latestAchievement = latestExtra.customProgramName;
+      }
+    }
+
+    let cceMarkTotal = 0;
+    if (student.cceMarks?.length) {
+      student.cceMarks
+        .filter(cce => cce.academicYear === academicYear)
+        .forEach(cce => {
+          cce.subjects?.forEach(subject => {
+            if (subject.mark) {
+              cceMarkTotal += subject.mark * 0.2;
+            }
+          });
+        });
+    }
+
+    const mentorMarkTotal = student.mentorMarks
+    ?.filter(m => m.academicYear === academicYear)
+    .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+
+  const extraMarkTotal = student.extraMarks
+    ?.filter(e => e.academicYear === academicYear)
+    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0;
+
+  const totalMarks = cceMarkTotal + mentorMarkTotal + extraMarkTotal;
+
     const details ={
       name:student.name,
       profileImage:student.profileImage,
       class:student.classId,
+      marks: totalMarks,
+      latestAchievement:latestAchievement,
     }
 
     return details
 
+  }
+
+  async performance(id:string){
+    if(!id){
+      throw new Error('id is required')
+    }
+    const student = await this.studentRepository.fetchProfile(id)
+    if(student.isDeleted){
+      throw new Error('student is deleted')
+    }
+    const academicYear = getCurrentAcademicYear()
+
+    let cceMarkTotal = 0;
+    if (student.cceMarks?.length) {
+      student.cceMarks
+        .filter(cce => cce.academicYear === academicYear)
+        .forEach(cce => {
+          cce.subjects?.forEach(subject => {
+            if (subject.mark) {
+              cceMarkTotal += subject.mark * 0.2;
+            }
+          });
+        });
+    }
+
+    const mentorMarkTotal = student.mentorMarks
+    ?.filter(m => m.academicYear === academicYear)
+    .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+
+  const extraMarkTotal = student.extraMarks
+    ?.filter(e => e.academicYear === academicYear)
+    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0;
+
+  const totalMarks = cceMarkTotal + mentorMarkTotal + extraMarkTotal;
+
+
+   // Filter and map all extraMarks in this academic year
+const achievementDetails = student.extraMarks
+?.filter(e => e.academicYear === academicYear)
+.map(e => {
+  let name: string | null = null;
+
+  if (e.programId && typeof e.programId === 'object') {
+    name = (e.programId as Program).name;
+  } else if (e.customProgramName) {
+    name = e.customProgramName;
+  }
+
+  return {
+    name,
+    mark: e.mark,
+  };
+}) || [];
+  const details={
+    totalScore:totalMarks,
+    cceScore:cceMarkTotal,
+    creditScore:extraMarkTotal,
+    achievments:achievementDetails,
+  }
+  return details
   }
 }

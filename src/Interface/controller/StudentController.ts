@@ -115,7 +115,32 @@ export class StudentController{
         try {
             const id:string = req.params.id
             const student = await this.studentUsecase.fetchProfile(id)
-            res.status(200).json({success:true,message:'fetching profile successfull',data:student})
+            res.status(200).json({success:true,message:'fetching profile successfull',student})
+            
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
+
+    async dashboard(req:Request,res:Response){
+        try {
+            const id:string = req.params.id
+            const dashboard = await this.studentUsecase.dashboard(id)
+            res.status(200).json({success:true,message:'fetching dashboard successfull',dashboard})
+
+            
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
+    async performance(req:Request,res:Response){
+        try {
+            const id:string = req.params.id
+            const performance = await this.studentUsecase.performance(id)
+            res.status(200).json({success:true,message:'fetching dashboard successfull',performance})
+
             
         } catch (error:any) {
             console.error(error);

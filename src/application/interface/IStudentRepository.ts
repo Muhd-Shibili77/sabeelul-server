@@ -14,4 +14,5 @@ export interface IStudentRepository{
     countStudent():Promise<number>;
     bestPerfomerClass():Promise<Student[]>
     getBestPerformingClass():Promise<ClassPerformance[]>
+    findByClass(classId:string):Promise<Student[]>
 }

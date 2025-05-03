@@ -40,15 +40,18 @@ router.route('/cce/:id')
 .post(async (req:Request,res:Response)=>{
     await studentController.addCceScore(req,res)
 })
-router.get('/profile',async(req:Request,res:Response)=>{
+router.get('/profile/:id',async(req:Request,res:Response)=>{
     await studentController.fetchProfile(req,res)
 })
-router.get('/dashboard',async(req:Request,res:Response)=>{
+router.get('/dashboard/:id',async(req:Request,res:Response)=>{
     await studentController.dashboard(req,res)
 })
-router.get('/performance',async(req:Request,res:Response)=>{
+router.get('/performance/:id',async(req:Request,res:Response)=>{
     await studentController.performance(req,res)
 })
 
+router.get('/details/:classId',async(req:Request,res:Response)=>{
+    await studentController.fetchByClass(req,res)
+})
 
 export default router

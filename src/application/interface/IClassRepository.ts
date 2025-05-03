@@ -10,4 +10,6 @@ export interface IClassRepository {
     editScore(id:string,academicYear:string,item:string,score:number):Promise<Class>;
     deleteScore(id:string,academicYear:string,item:string):Promise<Class>;
     totalScore():Promise<Partial<Class>[]>
+    addSubject(id:string,subject:string):Promise<void>
+    deleteSubject(id:string,subject:string):Promise<void>
 }

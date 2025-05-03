@@ -2,6 +2,7 @@ import { Router,Request,Response } from "express";
 import { TeacherController } from "../controller/TeacherController";
 import { TeacherUseCase } from "../../application/useCase/TeacherUseCase";
 import { TeacherRepository } from "../../infrastructure/repositories/TeacherRepository";
+import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 
 
 const teacherRepository = new TeacherRepository();
@@ -28,6 +29,9 @@ router.route('/:id')
 router.get('/profile',async (req:Request,res:Response)=>{
     await teacherController.fetchProfile(req,res)
 })
+
+
+
 
 
 

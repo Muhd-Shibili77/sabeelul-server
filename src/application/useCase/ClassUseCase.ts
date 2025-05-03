@@ -18,11 +18,11 @@ export class ClassUseCase {
         const newClass = await this.classRepository.addClass(cls)
         return newClass
     }
-    async updateClass(id:string,name:string,subjects:string[]){
+    async updateClass(id:string,name:string){
         if(!id){
             throw new Error('Id is required')
         }
-        if(!name || !subjects){
+        if(!name){
             throw new Error('All required fields must be filled.')
         }
         const existClass = await this.classRepository.findClassById(id)
@@ -31,7 +31,6 @@ export class ClassUseCase {
         }
         const cls = new Class({
             name:name,
-            subjects:subjects
         })
         const updateClass = await this.classRepository.editClass(id,cls)
         return updateClass
@@ -68,4 +67,21 @@ export class ClassUseCase {
         const updatedClass = await this.classRepository.deleteScore(id,academicYear,item)
         return updatedClass
     }
+    async fetchClass(id:string):Promise<Class>{
+        const cls = await this.classRepository.findClassById(id)
+        if(!cls){
+            throw new Error('Class not found')
+        }
+        return cls
+    }
+
+    async addSubject(id:string,subject:string){
+        const cls = await this.classRepository.addSubject(id,subject)
+        return cls
+    }
+    async deleteSubject(id:string,subject:string){
+        const cls = await this.classRepository.deleteSubject(id,subject)
+        return cls
+    }
+    
 }

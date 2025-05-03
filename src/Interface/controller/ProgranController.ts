@@ -12,15 +12,16 @@ export class ProgramController{
 
             const query = search
             ? {
-                $or: [
-                  { name: { $regex: search, $options: "i" } },
-                  { isDeleted:false }
-                ]
+                name: { $regex: search, $options: "i" },
+                isDeleted: false,
               }
-            : {};
+            : {
+                isDeleted: false,
+              };
+          
 
             const result = await this.programUseCase.fetchPrograms(query, page, limit);
-            res.status(200).json({ success: true,message:'Fetching of programs is successfull', data: result.programs, totalPages:result.totalPages ?? undefined });
+            res.status(200).json({ success: true,message:'Fetching of programs is successfull', programs: result.programs, totalPages:result.totalPages ?? undefined });
 
             
         } catch (error: any) {

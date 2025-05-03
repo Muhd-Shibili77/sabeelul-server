@@ -10,7 +10,9 @@ export class AuthUseCase {
         if (!admin) {
             throw new Error("Admin not found");
         }
-        const isPasswordValid = await bcrypt.compare(admin.password, password);
+       
+        const isPasswordValid = await bcrypt.compare(password,admin.password);
+       
         if (!isPasswordValid) {
             throw new Error("Invalid password");
         }
@@ -42,5 +44,10 @@ export class AuthUseCase {
         return { accessToken, refreshToken, role };
     }
    
+    async newAccessToken(refreshToken:string){
+        const decoded =  jwtService.verifyRefreshToken(refreshToken)
+        const newAccessToken = jwtService.generateAccessToken(decoded.userId,decoded.role)
+        return newAccessToken
+      }
     
 }

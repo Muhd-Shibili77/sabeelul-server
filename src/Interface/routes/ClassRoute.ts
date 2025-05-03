@@ -17,6 +17,9 @@ router.route('/')
 })
 
 router.route('/:id')
+.get(async(req:Request,res:Response)=>{
+    await classController.fetchClass(req,res)
+})
 .delete(async (req: Request, res: Response) => {
     await classController.deleteClass(req, res)
 })
@@ -32,6 +35,14 @@ router.route('/score/:id')
 })
 .delete(async (req: Request, res: Response) => {
     await classController.deleteScore(req, res)
+})
+
+router.route('/subject/:id')
+.post(async (req: Request, res: Response) => {
+    await classController.addSubject(req, res)
+})
+.delete(async (req: Request, res: Response) => {
+    await classController.deleteSubject(req, res)
 })
 
 

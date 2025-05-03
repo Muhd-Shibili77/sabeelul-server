@@ -13,9 +13,27 @@ export class TeacherUseCase{
     }
     
     async addTeacher(name:string,phone:number,address:string, email:string, password:string, registerNumber:string,profile:string): Promise<Teacher> {
-        if (!name || !email || !password || !registerNumber || !address) {
-            throw new Error('All required fields must be filled.');
+       
+        if (!name) {
+            throw new Error('Name is required.');
         }
+        
+        if (!email) {
+            throw new Error('Email is required.');
+        }
+        
+        if (!password) {
+            throw new Error('Password is required.');
+        }
+        
+        if (!registerNumber) {
+            throw new Error('Register number is required.');
+        }
+        
+        if (!address) {
+            throw new Error('Address is required.');
+        }
+        
         if (!validator.isEmail(email)) {
             throw new Error('Invalid email format.');
         }
@@ -57,9 +75,22 @@ export class TeacherUseCase{
 
    
     async updateTeacher(id:string, name:string, phone:number, address:string, email:string, password:string, registerNumber:string,profile:string): Promise<Teacher> {
-        if (!name || !email || !password || !registerNumber || !address) {
-            throw new Error('All required fields must be filled.');
-        }
+        if (!name) {
+            throw new Error('Name is required.');
+          }
+          
+          if (!email) {
+            throw new Error('Email is required.');
+          }
+          
+          if (!registerNumber) {
+            throw new Error('Register number is required.');
+          }
+          
+          if (!address) {
+            throw new Error('Address is required.');
+          }
+          
         if (!validator.isEmail(email)) {
             throw new Error('Invalid email format.');
         }
@@ -67,11 +98,15 @@ export class TeacherUseCase{
         if (!/^[0-9]{10}$/.test(phoneStr)) {
             throw new Error('Phone number must be exactly 10 digits.');
         }
-        if (password.length < 5) {
+        if (password != '' && password.length < 5) {
             throw new Error('Password must be at least 5 characters long.');
         }
-        
-        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const existTeacher = await this.teacherRepository.findTeacherById(id)
+        let hashedPassword = existTeacher?.password
+        if(password !=''){
+             hashedPassword = await bcrypt.hash(password, 10);
+        }
         const teacher = new Teacher({
             registerNo:registerNumber,
             name,

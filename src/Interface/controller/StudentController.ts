@@ -13,15 +13,15 @@ export class StudentController{
             const query = search
             ? {
                 $or: [
-                  { name: { $regex: search, $options: "i" } },
-                  { admissionNo: { $regex: search, $options: "i" } }
+                  { name: { $regex: search, $options: "i" },isDeleted: false },
+                  { admissionNo: { $regex: search, $options: "i" },isDeleted: false }
                 ]
               }
-            : {};
+            : { isDeleted: false };
 
 
             const {students,totalPages} = await this.studentUsecase.fetchStudents(query,page,limit)
-            res.status(200).json({ success: true,message:'Fetching of student is successfull', data: students, totalPages:totalPages });
+            res.status(200).json({ success: true,message:'Fetching of student is successfull', students, totalPages:totalPages });
             
         } catch (error: any) {
             console.error(error);
@@ -30,9 +30,10 @@ export class StudentController{
     }
     async addStudent(req: Request, res: Response) {
         try {
+            
             const { admissionNo,name,phone, email, password,className,address,guardianName,profile } = req.body;
             const newStudent = await this.studentUsecase.addStudent(admissionNo,name,phone, email, password,className,address,guardianName,profile )
-            res.status(200).json({ success: true,message:'Adding of student is successfull', data: newStudent });
+            res.status(200).json({ success: true,message:'Adding of student is successfull', students: newStudent });
             
         } catch (error: any) {
             console.error(error);
@@ -54,6 +55,7 @@ export class StudentController{
     async updateStudent(req: Request, res: Response) {
         try {
             const id: string = req.params.id;
+            
             const { admissionNo,name,phone, email, password,className,address,guardianName,profile } = req.body;
             const updatedStudent = await this.studentUsecase.updateStudent(id,admissionNo,name,phone, email, password,className,address,guardianName,profile )
             res.status(200).json({ success: true,message:'Updating of student is successfull', data: updatedStudent });
@@ -141,6 +143,18 @@ export class StudentController{
             const performance = await this.studentUsecase.performance(id)
             res.status(200).json({success:true,message:'fetching dashboard successfull',performance})
 
+            
+        } catch (error:any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message }); 
+        }
+    }
+
+    async fetchByClass(req:Request,res:Response){
+        try {
+            const classId:string = req.params.classId
+            const students = await this.studentUsecase.fetchByClass(classId)
+            res.status(200).json({success:true,message:'fetching students successfull',students})
             
         } catch (error:any) {
             console.error(error);

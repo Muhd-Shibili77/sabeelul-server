@@ -40,7 +40,8 @@ export class StudentRepository implements IStudentRepository {
     const students = await StudentModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ admissionNo: 1 });
+      .sort({ admissionNo: 1 })
+      .populate('classId name')
     return {
       students: students.map(
         (student) => new Student(student.toObject() as Student)
@@ -403,6 +404,13 @@ async getBestPerformingClass():Promise<ClassPerformance[]> {
   ]);
 
   return result; 
+}
+
+
+async findByClass(classId: string): Promise<Student[]> {
+  const students = await StudentModel.find({ classId }).populate('classId');
+
+  return students.map(student => student.toObject()as Student);
 }
 
 }

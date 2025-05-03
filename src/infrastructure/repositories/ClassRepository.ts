@@ -32,6 +32,7 @@ export class ClassRepository implements IClassRepository {
 
     async fetchClasses(query: object, page?: number, limit?: number): Promise<{ classes: Class[]; totalPages?: number }> {
         if (page && limit) {
+           
             const count = await ClassModel.countDocuments(query);
             const totalPages = Math.ceil(count / limit);
             const classes = await ClassModel.find(query)
@@ -123,5 +124,29 @@ export class ClassRepository implements IClassRepository {
           }));
         
           return result;
+    }
+
+    async addSubject(id: string, subject: string): Promise<void> {
+        const existingClass = await ClassModel.findById(id);
+        if (!existingClass) throw new Error("Class not found");
+
+        if (existingClass.subjects.includes(subject)) {
+            throw new Error("Subject already exists in this class");
+        }
+        existingClass.subjects.push(subject);
+        await existingClass.save();
+    }
+
+    async deleteSubject(id: string, subject: string): Promise<void> {
+        const existingClass = await ClassModel.findById(id);
+        if (!existingClass) throw new Error("Class not found");
+      
+        const subjectIndex = existingClass.subjects.indexOf(subject);
+        if (subjectIndex === -1) {
+          throw new Error("Subject not found in this class");
+        }
+      
+        existingClass.subjects.splice(subjectIndex, 1);
+        await existingClass.save();
     }
 }

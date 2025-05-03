@@ -30,13 +30,10 @@ const programSchema = new Schema(
         type: Boolean,
         default: false,
     },
-    classes: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Class",
-        required: true,
-      },
-    ],
+    classes: {
+      type: [String],
+      required: true,
+    },
   },
 
   { timestamps: true }

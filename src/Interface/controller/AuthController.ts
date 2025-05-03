@@ -9,12 +9,11 @@ export class AuthController {
     try {
       const { email, password } = req.body;
       const response = await this.authUseCase.adminLogin(email, password);
-
+      
       res.cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -24,6 +23,26 @@ export class AuthController {
         response,
         token: response.accessToken,
       });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async adminLogout(req:Request,res:Response){
+    try {
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      return res.status(StatusCode.OK).json({ success: true, message: "Refresh token cleared successfully." });
+      
+
+
     } catch (error: any) {
       console.error(error);
       res
@@ -56,6 +75,29 @@ export class AuthController {
       res
         .status(StatusCode.BAD_REQUEST)
         .json({ success: false, message: error.message });
+    }
+  }
+
+  async refreshAccessToken(req: Request, res: Response): Promise<Response> {
+    try {
+      const refreshToken = req.cookies.refreshToken;
+      if (!refreshToken) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Refresh token missing" });
+      }
+
+      const newAccessToken = await this.authUseCase.newAccessToken(
+        refreshToken
+      );
+      return res.status(200).json({
+        success: true,
+        accessToken: newAccessToken,
+      });
+    } catch (error) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Invalid or expired refresh token" });
     }
   }
 

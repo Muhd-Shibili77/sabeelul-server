@@ -13,15 +13,13 @@ export class TeacherController {
             const query = search
             ? {
                 $or: [
-                  { name: { $regex: search, $options: "i" } },
-                  { registerNo: { $regex: search, $options: "i" } }
+                  { name: { $regex: search, $options: "i" },isDeleted: false  },
+                  { registerNo: { $regex: search, $options: "i" },isDeleted: false  }
                 ]
               }
-            : {};
-          
-
+            : {isDeleted: false };
             const {teachers,totalPages} = await this.teacherUseCase.fetchTeachers(query,page,limit)
-            res.status(200).json({ success: true,message:'Fetching of teacher is successfull', data: teachers, totalPages:totalPages });
+            res.status(200).json({ success: true,message:'Fetching of teacher is successfull', teachers, totalPages:totalPages });
             
         } catch (error: any) {
             console.error(error);
@@ -32,7 +30,9 @@ export class TeacherController {
 
     async addTeacher(req: Request, res: Response) {
         try {
+           
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
+            
             const newTeacher = await this.teacherUseCase.addTeacher(name,phone,address, email, password, registerNumber,profile)
             res.status(200).json({ success: true,message:'Adding of teacher is successfull', data: newTeacher });
             
@@ -56,6 +56,8 @@ export class TeacherController {
     
     async updateTeacher(req: Request, res: Response) {
         try {
+            console.log(req.params)
+            console.log(req.body)
             const id: string = req.params.id;
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
             const updatedTeacher = await this.teacherUseCase.updateTeacher(id,name,phone,address, email, password, registerNumber,profile)

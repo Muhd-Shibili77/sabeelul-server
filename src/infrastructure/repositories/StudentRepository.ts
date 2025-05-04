@@ -84,11 +84,22 @@ export class StudentRepository implements IStudentRepository {
       if(!student){
         throw new Error('student not found')
       }
-      const updatedStudent = await StudentModel.findByIdAndUpdate(
-        id,
-        {$push:{mentorMarks:{academicYear,mark}}},
-        {new:true}
-      )
+      
+      if (!student.mentorMarks) {
+        student.mentorMarks = [];
+      }
+      const existingMarkIndex = student.mentorMarks.findIndex(
+        (entry) => entry.academicYear === academicYear
+      );
+
+      if (existingMarkIndex !== -1) {
+        student.mentorMarks[existingMarkIndex].mark = mark;
+      } else {
+        student.mentorMarks.push({ academicYear, mark });
+      }
+
+      const updatedStudent = await student.save();
+
       if(!updatedStudent){
         throw new Error('Adding mentor failed')
       }

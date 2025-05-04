@@ -193,7 +193,8 @@ export class StudentUseCase {
       return student
   }
 
-  async addMentorScore(id:string,academicYear:string,mark:number):Promise<Student>{
+  async addMentorScore(id:string,mark:number):Promise<Student>{
+    const academicYear = getCurrentAcademicYear()
     if(!id){
       throw new Error('id is required')
     }

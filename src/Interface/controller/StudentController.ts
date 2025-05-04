@@ -92,8 +92,8 @@ export class StudentController{
     async addMentorScore(req:Request,res:Response){
         try {
             const id:string  = req.params.id;
-            const {academicYear,mark} = req.body
-            const student = await this.studentUsecase.addMentorScore(id,academicYear,mark)
+            const {mark} = req.body
+            const student = await this.studentUsecase.addMentorScore(id,mark)
             res.status(200).json({success:true,message:'add mentor mark to student is successful',data:student})
         } catch (error:any) {
             console.error(error);
@@ -151,8 +151,10 @@ export class StudentController{
     }
 
     async fetchByClass(req:Request,res:Response){
-        try {
+       
+        try { 
             const classId:string = req.params.classId
+            
             const students = await this.studentUsecase.fetchByClass(classId)
             res.status(200).json({success:true,message:'fetching students successfull',students})
             

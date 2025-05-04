@@ -50,7 +50,7 @@ router.get('/performance/:id',async(req:Request,res:Response)=>{
     await studentController.performance(req,res)
 })
 
-router.get('/details/:classId',async(req:Request,res:Response)=>{
+router.get('/class/:classId',async(req:Request,res:Response)=>{
     await studentController.fetchByClass(req,res)
 })
 

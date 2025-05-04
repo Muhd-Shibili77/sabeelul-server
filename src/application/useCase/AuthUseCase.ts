@@ -38,9 +38,8 @@ export class AuthUseCase {
         }
     
         const role = teacher ? 'Teacher' : 'Student';
-    
-        const accessToken = jwtService.generateAccessToken(account.id, role);
-        const refreshToken = jwtService.generateRefreshToken(account.id, role);
+        const accessToken = jwtService.generateAccessToken((account as any)._id, role);
+        const refreshToken = jwtService.generateRefreshToken((account as any)._id, role);
     
         return { accessToken, refreshToken, role };
     }

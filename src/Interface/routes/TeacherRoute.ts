@@ -25,10 +25,11 @@ router.route('/:id')
 .put(async (req: Request, res: Response) => {
     await teacherController.updateTeacher(req, res)
 })
-
-router.get('/profile',async (req:Request,res:Response)=>{
+.get(async (req:Request,res:Response)=>{
     await teacherController.fetchProfile(req,res)
 })
+
+
 
 
 

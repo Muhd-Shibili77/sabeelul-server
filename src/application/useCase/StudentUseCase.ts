@@ -277,11 +277,17 @@ export class StudentUseCase {
 
     let latestAchievement = null;
     if (latestExtra) {
-      if (latestExtra.programId && typeof latestExtra.programId === 'object') {
-        latestAchievement = (latestExtra.programId as Program).name;
-      } else if (latestExtra.customProgramName) {
-        latestAchievement = latestExtra.customProgramName;
-      }
+      const name =
+      latestExtra.programId && typeof latestExtra.programId === 'object'
+        ? (latestExtra.programId as Program).name
+        : latestExtra.customProgramName || null;
+        const mark = latestExtra.mark || 0;
+        const date = latestExtra.date || null;
+        latestAchievement = {
+          name,
+          mark,
+          date,
+        };
     }
 
     let cceMarkTotal = 0;
@@ -291,7 +297,7 @@ export class StudentUseCase {
         .forEach(cce => {
           cce.subjects?.forEach(subject => {
             if (subject.mark) {
-              cceMarkTotal += subject.mark * 0.2;
+              cceMarkTotal += Math.round(subject.mark * 0.2);
             }
           });
         });
@@ -301,11 +307,11 @@ export class StudentUseCase {
     ?.filter(m => m.academicYear === academicYear)
     .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
 
-  const extraMarkTotal = student.extraMarks
+  const extraMarkTotal = Math.round(student.extraMarks
     ?.filter(e => e.academicYear === academicYear)
-    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0;
+    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0);
 
-  const totalMarks = cceMarkTotal + mentorMarkTotal + extraMarkTotal;
+    const totalMarks = Math.round((cceMarkTotal + mentorMarkTotal + extraMarkTotal+200));
 
     const details ={
       name:student.name,
@@ -336,21 +342,22 @@ export class StudentUseCase {
         .forEach(cce => {
           cce.subjects?.forEach(subject => {
             if (subject.mark) {
-              cceMarkTotal += subject.mark * 0.2;
+              cceMarkTotal += Math.round(subject.mark * 0.2);
             }
           });
         });
     }
+    
 
     const mentorMarkTotal = student.mentorMarks
     ?.filter(m => m.academicYear === academicYear)
     .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
 
-  const extraMarkTotal = student.extraMarks
+  const extraMarkTotal = Math.round(student.extraMarks
     ?.filter(e => e.academicYear === academicYear)
-    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0;
+    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0);
 
-  const totalMarks = cceMarkTotal + mentorMarkTotal + extraMarkTotal;
+    const totalMarks = Math.round(cceMarkTotal + mentorMarkTotal + extraMarkTotal+200);
 
 
    // Filter and map all extraMarks in this academic year
@@ -368,6 +375,7 @@ const achievementDetails = student.extraMarks
   return {
     name,
     mark: e.mark,
+    date:e.date,
   };
 }) || [];
   const details={

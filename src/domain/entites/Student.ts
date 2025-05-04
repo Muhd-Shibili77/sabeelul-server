@@ -15,6 +15,7 @@ class Student{
         programId:string,
         customProgramName:string,
         mark:number,
+        date:Date,
     }[]
     public mentorMarks?:{
         academicYear:string,

@@ -18,6 +18,7 @@ export interface IStudent extends Document{
         programId?: mongoose.Types.ObjectId;
         customProgramName?: string;
         mark: number;
+        date:Date
     }[],
     mentorMarks?:{
         academicYear:string;
@@ -93,6 +94,10 @@ const studentSchema = new Schema({
         mark: {
             type: Number,
             required: true
+        },
+        date:{
+            type:Date,
+            default:new Date()
         }
     }],
    mentorMarks:[{

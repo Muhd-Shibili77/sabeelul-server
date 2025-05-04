@@ -4,6 +4,7 @@ import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
+import classModel from "../models/ClassModel";
 export class StudentRepository implements IStudentRepository {
     
   async addStudent(student: Student): Promise<Student> {
@@ -84,7 +85,7 @@ export class StudentRepository implements IStudentRepository {
       if(!student){
         throw new Error('student not found')
       }
-      
+
       if (!student.mentorMarks) {
         student.mentorMarks = [];
       }
@@ -105,36 +106,70 @@ export class StudentRepository implements IStudentRepository {
       }
       return new Student(updatedStudent.toObject() as Student)
   }
-  async addCceScore(id: string, academicYear: string, className: string, subjectName: string,phase:string, mark: number): Promise<Student> {
-    const student = await StudentModel.findById(id);
-    if (!student) {
-      throw new Error("Student not found");
-     }
-    const academicRecord = student.cceMarks?.find(record => record.academicYear === academicYear);
+  async addCceScore(
+  id: string,
+  academicYear: string,
+  classId: string,
+  subjectName: string,
+  phase: string,
+  mark: number
+): Promise<Student> {
+  const classDoc = await classModel.findById(classId).select("name");
+  const className = classDoc?.name;
+  if(!className){
+    throw new Error('class not found')
+  }
+  const student = await StudentModel.findById(id);
+  if (!student) {
+    throw new Error("Student not found");
+  }
 
-    if(academicRecord){
+  // Initialize cceMarks if undefined
+  if (!student.cceMarks) {
+    student.cceMarks = [];
+  }
+
+  // Find academic record
+  const academicRecord = student.cceMarks.find(
+    (record) => record.academicYear === academicYear
+  );
+
+  if (academicRecord) {
+    // Try to find the subject and phase entry
+    const subjectPhaseEntry = academicRecord.subjects.find(
+      (entry) => entry.subjectName === subjectName && entry.phase === phase
+    );
+
+    if (subjectPhaseEntry) {
+      // If entry exists, update the mark
+      subjectPhaseEntry.mark = mark;
+    } else {
+      // Else, push a new entry
       academicRecord.subjects.push({
         subjectName,
         phase,
-        mark
-       });
-    }else{
-      student.cceMarks?.push({
-        academicYear,
-        className,
-        subjects: [{
-            subjectName,
-            phase,
-            mark
-        }]
-    });
+        mark,
+      });
     }
-    await student.save();
-
-    return new Student(student.toObject() as Student)
-
-
+  } else {
+    // If academicYear record doesn't exist, create it
+    student.cceMarks.push({
+      academicYear,
+      className,
+      subjects: [
+        {
+          subjectName,
+          phase,
+          mark,
+        },
+      ],
+    });
   }
+
+  await student.save();
+  return new Student(student.toObject() as Student);
+}
+
 
   async fetchProfile(id: string): Promise<Student> {
       const student = await StudentModel.findById(id).populate('classId').populate('extraMarks.programId').exec();

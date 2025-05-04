@@ -103,8 +103,8 @@ export class StudentController{
     async addCceScore(req:Request,res:Response){
         try {
             const id:string = req.params.id
-            const {academicYear,className,subjectName,phase,mark}  = req.body
-            const student = await this.studentUsecase.addCceScore(id,academicYear,className,subjectName,phase,mark)
+            const {classId,subjectName,phase,mark}  = req.body
+            const student = await this.studentUsecase.addCceScore(id,classId,subjectName,phase,mark)
             res.status(200).json({success:true,message:'add CCE mark to student is successful',data:student})
 
         } catch (error:any) {

@@ -214,14 +214,15 @@ export class StudentUseCase {
     return student
   }
 
-  async addCceScore(id:string,academicYear:string,className: string,phase:string, subjectName: string, mark: number):Promise<Student>{
+  async addCceScore(id:string,classId: string,phase:string, subjectName: string, mark: number):Promise<Student>{
+    const academicYear = getCurrentAcademicYear()
     if(!id){
       throw new Error('id is required')
     }
     if(!academicYear){
       throw new Error('academicYear is required')
     }
-    if(!className){
+    if(!classId){
       throw new Error('className is required')
     }
     if(!subjectName){
@@ -237,11 +238,8 @@ export class StudentUseCase {
       throw new Error('mark is must be greater than zero')
     }
 
-    const studentExist = await this.studentRepository.findStudentById(id)
-    if(!studentExist){
-      throw new Error('student not found')
-    }
-    const updatedStudent = await this.studentRepository.addCceScore(id,academicYear,className,phase,subjectName,mark)
+    
+    const updatedStudent = await this.studentRepository.addCceScore(id,academicYear,classId,phase,subjectName,mark)
     if(!updatedStudent){
       throw new Error('Failed to add CCE mark to student')
     }

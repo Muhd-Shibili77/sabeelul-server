@@ -30,6 +30,7 @@ export class AuthUseCase {
         if (!account) {
             throw new Error("User not found");
         }
+        
     
         const isPasswordValid = await bcrypt.compare(password, account.password);
         if (!isPasswordValid) {

@@ -53,14 +53,14 @@ export class AuthController {
 
   async userLogin(req: Request, res: Response) {
     try {
-      const { login, password } = req.body;
-      const response = await this.authUseCase.userLogin(login, password);
+      
+      const { loginData, password } = req.body;
+      const response = await this.authUseCase.userLogin(loginData, password);
 
       res.cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        path: "/",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       return res.status(StatusCode.OK).json({
@@ -70,6 +70,26 @@ export class AuthController {
         role:response.role,
         token: response.accessToken,
       });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.BAD_REQUEST)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async userLogout(req:Request,res:Response){
+    try {
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      return res.status(StatusCode.OK).json({ success: true, message: "Refresh token cleared successfully." });
+      
+
+
     } catch (error: any) {
       console.error(error);
       res

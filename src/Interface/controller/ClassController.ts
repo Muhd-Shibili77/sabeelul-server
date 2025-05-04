@@ -65,9 +65,11 @@ export class ClassController {
     }
     async addScore(req:Request,res:Response){
         try {
+            console.log(req.params)
+            console.log(req.body)
             const id: string = req.params.id;
-            const {academicYear,item,score} = req.body
-            const updatedClass = await this.classUseCase.addScore(id,academicYear,item,score)
+            const {item,score} = req.body
+            const updatedClass = await this.classUseCase.addScore(id,item,score)
             res.status(200).json({ success: true,message:'Adding of score is successfull', data: updatedClass });
         } catch (error: any) {
             console.error(error);

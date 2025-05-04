@@ -7,8 +7,8 @@ export class AdminController {
     
     async getDashboard(req:Request,res:Response){
         try {
-            const datas = await this.adminUseCase.getDashboard()
-            res.status(StatusCode.OK).json({ success: true,message:'Fetching of admin dashboard is successfull', datas });
+            const data = await this.adminUseCase.getDashboard()
+            res.status(StatusCode.OK).json({ success: true,message:'Fetching of admin dashboard is successfull', data });
 
         } catch (error: any) {
             console.error(error);

@@ -17,6 +17,9 @@ router.post('/admin/logout',async (req: Request, res: Response) => {
 router.post('/login',async (req: Request, res: Response) => {
     await authController.userLogin(req, res)
 })
+router.post('/logout',async (req: Request, res: Response) => {
+    await authController.userLogout(req, res)
+})
 router.post('/refresh-token',async(req:Request,res:Response):Promise<void>=>{
     await authController.refreshAccessToken(req,res)
 })

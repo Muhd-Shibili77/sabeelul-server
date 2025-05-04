@@ -8,7 +8,7 @@ import TeacherRoute from "./Interface/routes/TeacherRoute";
 import ClassRoute from "./Interface/routes/ClassRoute";
 import ProgramRoute from './Interface/routes/ProgramRoute';
 import StudentRoute from './Interface/routes/StudentRoute';
-
+import AdminRoute from './Interface/routes/AdminRoute'
 
 dotenv.config();
 const app = express();
@@ -31,6 +31,7 @@ app.use("/teacher", TeacherRoute);
 app.use("/class", ClassRoute);
 app.use("/program", ProgramRoute);
 app.use("/student", StudentRoute);
+app.use("/admin", AdminRoute);
 
 app.get("/", (req, res) => {
   

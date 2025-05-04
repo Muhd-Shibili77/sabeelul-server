@@ -1,4 +1,5 @@
 import Class from "../../domain/entites/Class";
+import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { IClassRepository } from "../interface/IClassRepository";
 
 export class ClassUseCase {
@@ -43,7 +44,8 @@ export class ClassUseCase {
         await this.classRepository.deleteClass(id)
 
     }
-    async addScore(id:string,academicYear:string,item:string,score:number):Promise<Class>{
+    async addScore(id:string,item:string,score:number):Promise<Class>{
+        const academicYear = getCurrentAcademicYear()
         const cls = await this.classRepository.findClassById(id)
         if(!cls){
             throw new Error('Class not found')

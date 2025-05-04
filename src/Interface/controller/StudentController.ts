@@ -67,9 +67,9 @@ export class StudentController{
     }
     async findByAdmNo(req:Request,res:Response){
         try {
-            const {admissionNo} = req.body
-            const student = await this.studentUsecase.findByAdmissinNo(admissionNo)
-            res.status(200).json({ success: true,message:'fetching of student is successfull', data: student });
+            const id: string = req.params.id;
+            const student = await this.studentUsecase.findByAdmissinNo(id)
+            res.status(200).json({ success: true,message:'fetching of student is successfull',student });
 
         } catch (error: any) {
             console.error(error);
@@ -79,8 +79,8 @@ export class StudentController{
     async addExtraScore(req:Request,res:Response){
         try {
             const id: string = req.params.id;
-            const {academicYear,programName,mark} = req.body
-            const student = await this.studentUsecase.addExtraScore(id,academicYear,programName,mark)
+            const {programName,mark} = req.body
+            const student = await this.studentUsecase.addExtraScore(id,programName,mark)
             res.status(200).json({ success: true,message:'add Extra mark to student is successfull', data: student });
    
         }catch (error: any) {

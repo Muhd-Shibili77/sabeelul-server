@@ -168,8 +168,9 @@ export class StudentUseCase {
 
       return student 
   }
-  async addExtraScore(id:string,academicYear:string,programName:string,mark:number):Promise<Student>{
-      if(!id){
+  async addExtraScore(id:string,programName:string,mark:number):Promise<Student>{
+      const academicYear = getCurrentAcademicYear()
+    if(!id){
         throw new Error('id is required')
       }
       if(!academicYear){

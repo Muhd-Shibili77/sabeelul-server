@@ -11,7 +11,9 @@ const adminUseCase = new AdminUseCase(studentRepository,teacherRepository,classR
 const adminController = new AdminController(adminUseCase)
 const router = Router()
 
-router.get('/')
+router.get('/dashboard',async (req:Request,res:Response)=>{
+    await adminController.getDashboard(req,res)
+})
 
 
 export default router

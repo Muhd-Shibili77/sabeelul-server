@@ -1,10 +1,12 @@
-import mongoose,{PipelineStage} from "mongoose";
+import mongoose,{PipelineStage,Types} from "mongoose";
 import { IStudentRepository } from "../../application/interface/IStudentRepository";
 import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 import classModel from "../models/ClassModel";
+import Teacher from "../../domain/entites/Teacher";
+import TeacherModel from "../models/TeacherModel";
 export class StudentRepository implements IStudentRepository {
     
   async addStudent(student: Student): Promise<Student> {
@@ -459,4 +461,226 @@ async findByClass(classId: string): Promise<Student[]> {
   return students.map(student => student.toObject()as Student);
 }
 
+async bestPerformerOverall(): Promise<Student[]> {
+  const academicYear = getCurrentAcademicYear();
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        isDeleted: false
+      }
+    },
+    {
+      $addFields: {
+        totalExtraMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$extraMarks",
+                  as: "em",
+                  cond: { $eq: ["$$em.academicYear", academicYear] }
+                }
+              },
+              as: "emf",
+              in: "$$emf.mark"
+            }
+          }
+        },
+        totalMentorMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$mentorMarks",
+                  as: "mm",
+                  cond: { $eq: ["$$mm.academicYear", academicYear] }
+                }
+              },
+              as: "mmf",
+              in: "$$mmf.mark"
+            }
+          }
+        },
+        totalCceScore: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$cceMarks",
+                  as: "cce",
+                  cond: { $eq: ["$$cce.academicYear", academicYear] }
+                }
+              },
+              as: "ccef",
+              in: {
+                $sum: {
+                  $map: {
+                    input: "$$ccef.subjects",
+                    as: "sub",
+                    in: {
+                      $multiply: ["$$sub.mark", 0.2]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $addFields: {
+        performanceScore: {
+          $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"]
+        }
+      }
+    },
+    {
+      $sort: { performanceScore: -1 }
+    },
+    {
+      $limit: 10
+    },
+    {
+      $lookup: {
+        from: "classes",
+        localField: "classId",
+        foreignField: "_id",
+        as: "classId"
+      }
+    },
+    {
+      $unwind: "$classId"
+    },
+    {
+      $project: {
+        name: 1,
+        performanceScore: 1,
+        profileImage:1,
+        classId: 1
+      }
+    }
+  ];
+
+  const result = await StudentModel.aggregate(pipeline);
+  return result || null;
 }
+
+async getTopStudentsInClass(classId: string): Promise<Student[]> {
+  const academicYear = getCurrentAcademicYear();
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        isDeleted: false,
+        classId: new Types.ObjectId(classId) // Ensure it's matched as an ObjectId
+      }
+    },
+    {
+      $addFields: {
+        totalExtraMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$extraMarks",
+                  as: "em",
+                  cond: { $eq: ["$$em.academicYear", academicYear] }
+                }
+              },
+              as: "emf",
+              in: "$$emf.mark"
+            }
+          }
+        },
+        totalMentorMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$mentorMarks",
+                  as: "mm",
+                  cond: { $eq: ["$$mm.academicYear", academicYear] }
+                }
+              },
+              as: "mmf",
+              in: "$$mmf.mark"
+            }
+          }
+        },
+        totalCceScore: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$cceMarks",
+                  as: "cce",
+                  cond: { $eq: ["$$cce.academicYear", academicYear] }
+                }
+              },
+              as: "ccef",
+              in: {
+                $sum: {
+                  $map: {
+                    input: "$$ccef.subjects",
+                    as: "sub",
+                    in: {
+                      $multiply: ["$$sub.mark", 0.2]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $addFields: {
+        performanceScore: {
+          $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"]
+        }
+      }
+    },
+    {
+      $sort: { performanceScore: -1 }
+    },
+    {
+      $limit: 10
+    },
+    {
+      $lookup: {
+        from: "classes",
+        localField: "classId",
+        foreignField: "_id",
+        as: "classId"
+      }
+    },
+    {
+      $unwind: "$classId"
+    },
+    {
+      $project: {
+        name: 1,
+        performanceScore: 1,
+        profileImage: 1,
+        classId: 1
+      }
+    }
+  ];
+
+  const result = await StudentModel.aggregate(pipeline);
+  return result || [];
+}
+
+async isExist(data: string): Promise<boolean> {
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex
+  const query = isEmail ? { email: data } : { phone: data };
+  const student = await StudentModel.findOne(query).lean();
+  const teacher = await TeacherModel.findOne(query).lean();
+  
+  return !!student || !!teacher;
+}
+}
+

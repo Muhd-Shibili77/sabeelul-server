@@ -9,7 +9,7 @@ import ClassRoute from "./Interface/routes/ClassRoute";
 import ProgramRoute from './Interface/routes/ProgramRoute';
 import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
-
+import HomeRoute from './Interface/routes/HomeRoute'
 dotenv.config();
 const app = express();
 const URL = process.env.URL as string;
@@ -32,7 +32,7 @@ app.use("/class", ClassRoute);
 app.use("/program", ProgramRoute);
 app.use("/student", StudentRoute);
 app.use("/admin", AdminRoute);
-
+app.use("/home",HomeRoute)
 app.get("/", (req, res) => {
   
   res.send("server is working");

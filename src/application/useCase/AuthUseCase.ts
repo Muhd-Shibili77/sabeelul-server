@@ -25,11 +25,12 @@ export class AuthUseCase {
         
         const teacher = await this.authRepository.findTeacher(login);
         const student = await this.authRepository.findStudent(login);
-    
+      
         const account = teacher || student;
         if (!account) {
             throw new Error("User not found");
         }
+       
         
     
         const isPasswordValid = await bcrypt.compare(password, account.password);

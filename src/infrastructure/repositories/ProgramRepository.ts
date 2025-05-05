@@ -60,4 +60,17 @@ export class ProgramRespository implements IProgramRepository{
             };
             }
         }
+        async upcomingProgram(): Promise<Program[]> {
+          const today = new Date();
+          const programs = await ProgramModel.find({
+            isDeleted: false,
+            $or: [
+              { startDate: { $gt: today } },                     // Not yet started
+              { startDate: { $lte: today }, endDate: { $gt: today } }  // Ongoing
+            ]
+          }).limit(2).lean();
+        
+          return programs as Program[];
+        }
+        
 }

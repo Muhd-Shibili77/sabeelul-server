@@ -6,4 +6,5 @@ export interface IProgramRepository{
     deleteProgram(id: string): Promise<void>;
     findProgramById(id: string): Promise<Program | null>;
     fetchPrograms(query: object, page?: number, limit?: number): Promise<{ programs: Program[]; totalPages?: number }>;
+    upcomingProgram():Promise<Program[]>
 }

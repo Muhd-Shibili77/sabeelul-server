@@ -15,4 +15,7 @@ export interface IStudentRepository{
     bestPerfomerClass():Promise<Student[]>
     getBestPerformingClass():Promise<ClassPerformance[]>
     findByClass(classId:string):Promise<Student[]>
+    bestPerformerOverall(): Promise<Student[]>
+    getTopStudentsInClass(classId: string): Promise<Student[]>
+    isExist(data:string):Promise<boolean>
 }

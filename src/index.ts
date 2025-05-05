@@ -34,17 +34,9 @@ app.use("/student", StudentRoute);
 app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
 app.get("/", (req, res) => {
-  
   res.send("server is working");
 });
 
-// async function createAdmin(){
-//     const hashedPassword = await bcrypt.hash('123456', 10);
-//     await AdminModel.create({
-//       email:'admin@gmail.com',
-//       password:hashedPassword
-//     })
-// }
 
 
 app.listen(process.env.PORT,()=>{

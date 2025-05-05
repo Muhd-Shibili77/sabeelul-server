@@ -2,6 +2,7 @@ import { Router,Request,Response } from "express";
 import { ClassController } from "../controller/ClassController";
 import { ClassUseCase } from "../../application/useCase/ClassUseCase";
 import { ClassRepository } from "../../infrastructure/repositories/ClassRepository";
+import { authenticateJWT } from "../middlewares/authMiddleware";
 
 const classRepository = new ClassRepository();
 const classUseCase = new ClassUseCase(classRepository);
@@ -9,39 +10,39 @@ const classController = new ClassController(classUseCase);
 const router = Router();
 
 router.route('/')
-.get(async (req: Request, res: Response) => {
+.get(authenticateJWT(['Admin','Teacher']),async (req: Request, res: Response) => {
     await classController.fetchClass(req, res)
 })
-.post(async (req: Request, res: Response) => {
+.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.addClass(req, res)
 })
 
 router.route('/:id')
-.get(async(req:Request,res:Response)=>{
+.get(authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
     await classController.fetchClass(req,res)
 })
-.delete(async (req: Request, res: Response) => {
+.delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.deleteClass(req, res)
 })
-.put(async (req: Request, res: Response) => {
+.put(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.updateClass(req, res)
 })
 router.route('/score/:id')
-.post(async (req: Request, res: Response) => {
+.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.addScore(req, res)
 })
-.put(async (req: Request, res: Response) => {
+.put(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.editScore(req, res)
 })
-.delete(async (req: Request, res: Response) => {
+.delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.deleteScore(req, res)
 })
 
 router.route('/subject/:id')
-.post(async (req: Request, res: Response) => {
+.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.addSubject(req, res)
 })
-.delete(async (req: Request, res: Response) => {
+.delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.deleteSubject(req, res)
 })
 

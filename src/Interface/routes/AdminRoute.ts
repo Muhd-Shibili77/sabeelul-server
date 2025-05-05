@@ -4,6 +4,7 @@ import { AdminUseCase } from "../../application/useCase/AdminUseCase";
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 import { TeacherRepository } from "../../infrastructure/repositories/TeacherRepository";
 import { ClassRepository } from "../../infrastructure/repositories/ClassRepository";
+import { authenticateJWT } from "../middlewares/authMiddleware";
 const studentRepository = new StudentRepository()
 const teacherRepository = new TeacherRepository()
 const classRepository = new ClassRepository()
@@ -11,7 +12,7 @@ const adminUseCase = new AdminUseCase(studentRepository,teacherRepository,classR
 const adminController = new AdminController(adminUseCase)
 const router = Router()
 
-router.get('/dashboard',async (req:Request,res:Response)=>{
+router.get('/dashboard',authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
     await adminController.getDashboard(req,res)
 })
 

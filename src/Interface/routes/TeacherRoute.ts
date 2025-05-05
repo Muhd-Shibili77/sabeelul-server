@@ -3,7 +3,7 @@ import { TeacherController } from "../controller/TeacherController";
 import { TeacherUseCase } from "../../application/useCase/TeacherUseCase";
 import { TeacherRepository } from "../../infrastructure/repositories/TeacherRepository";
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
-
+import { authenticateJWT } from "../middlewares/authMiddleware";
 
 const teacherRepository = new TeacherRepository();
 const teacherUseCase = new TeacherUseCase(teacherRepository);
@@ -11,21 +11,21 @@ const teacherController = new TeacherController(teacherUseCase);
 const router = Router();
 
 router.route('/')
-.get(async (req: Request, res: Response) => {
+.get(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await teacherController.fetchTeachers(req, res)
 })
-.post(async (req: Request, res: Response) => {
+.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await teacherController.addTeacher(req, res)
 })
 
 router.route('/:id')
-.delete(async (req: Request, res: Response) => {
+.delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await teacherController.deleteTeacher(req, res)
 })
-.put(async (req: Request, res: Response) => {
+.put(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await teacherController.updateTeacher(req, res)
 })
-.get(async (req:Request,res:Response)=>{
+.get(authenticateJWT(['Admin','Teacher']),async (req:Request,res:Response)=>{
     await teacherController.fetchProfile(req,res)
 })
 

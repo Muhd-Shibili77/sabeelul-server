@@ -10,7 +10,7 @@ const classController = new ClassController(classUseCase);
 const router = Router();
 
 router.route('/')
-.get(authenticateJWT(['Admin','Teacher']),async (req: Request, res: Response) => {
+.get(async (req: Request, res: Response) => {
     await classController.fetchClass(req, res)
 })
 .post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {

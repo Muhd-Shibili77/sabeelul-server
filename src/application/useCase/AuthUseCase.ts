@@ -16,8 +16,8 @@ export class AuthUseCase {
         if (!isPasswordValid) {
             throw new Error("Invalid password");
         }
-        const accessToken = jwtService.generateAccessToken(admin.id,'Admin')
-        const refreshToken = jwtService.generateRefreshToken(admin.id,'Admin')
+        const accessToken = jwtService.generateAccessToken((admin as any)._id,'Admin')
+        const refreshToken = jwtService.generateRefreshToken((admin as any)._id,'Admin')
         return { accessToken, refreshToken };
         
     }

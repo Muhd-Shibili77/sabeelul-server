@@ -40,7 +40,7 @@ router.route('/cce/:id')
 .post(authenticateJWT(['Admin','Teacher']),async (req:Request,res:Response)=>{
     await studentController.addCceScore(req,res)
 })
-router.get('/profile/:id',authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
+router.get('/profile/:id',authenticateJWT(['Admin','Teacher','Student']),async(req:Request,res:Response)=>{
     await studentController.fetchProfile(req,res)
 })
 router.get('/dashboard/:id',authenticateJWT(['Admin','Teacher','Student']),async(req:Request,res:Response)=>{

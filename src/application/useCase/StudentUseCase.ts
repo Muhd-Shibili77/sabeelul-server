@@ -157,7 +157,7 @@ export class StudentUseCase {
 
   async findByAdmissinNo(admissionNo:string):Promise<Student>{
       if(!admissionNo){
-        throw new Error('Admission No required')
+        throw new Error('AdmissionNo required')
       }
 
       const student = await this.studentRepository.findByAdNo(admissionNo)

@@ -13,7 +13,7 @@ export class AuthController {
       res.cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -37,7 +37,7 @@ export class AuthController {
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "none",
       });
       return res.status(StatusCode.OK).json({ success: true, message: "Refresh token cleared successfully." });
       
@@ -60,7 +60,7 @@ export class AuthController {
       res.cookie("refreshToken", response.refreshToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "none",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
       return res.status(StatusCode.OK).json({
@@ -84,7 +84,7 @@ export class AuthController {
       res.clearCookie("refreshToken", {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "none",
       });
       return res.status(StatusCode.OK).json({ success: true, message: "Refresh token cleared successfully." });
       

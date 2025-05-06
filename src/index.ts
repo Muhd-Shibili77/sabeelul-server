@@ -12,7 +12,7 @@ import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 dotenv.config();
 const app = express();
-const URL = process.env.URL as string;
+const URL = process.env.API_URL as string;
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));

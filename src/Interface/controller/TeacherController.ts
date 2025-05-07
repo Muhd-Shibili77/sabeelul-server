@@ -56,8 +56,7 @@ export class TeacherController {
     
     async updateTeacher(req: Request, res: Response) {
         try {
-            console.log(req.params)
-            console.log(req.body)
+    
             const id: string = req.params.id;
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
             const updatedTeacher = await this.teacherUseCase.updateTeacher(id,name,phone,address, email, password, registerNumber,profile)

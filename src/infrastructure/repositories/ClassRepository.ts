@@ -1,7 +1,9 @@
 import { IClassRepository } from "../../application/interface/IClassRepository";
 import Class from "../../domain/entites/Class";
+import Student from "../../domain/entites/Student";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import ClassModel from "../models/ClassModel";
+import StudentModel from "../models/StudentModel";
 
 export class ClassRepository implements IClassRepository {
     async addClass(classData: Class): Promise<Class> {
@@ -148,5 +150,19 @@ export class ClassRepository implements IClassRepository {
       
         existingClass.subjects.splice(subjectIndex, 1);
         await existingClass.save();
+    }
+
+    async findClassByName(name: string): Promise<Class | null> {
+        const existClass = await ClassModel.findOne({name:name,isDeleted:false})
+        if(!existClass){
+            return null
+        }
+        return new Class(existClass.toObject() as Class);
+         
+    }
+
+    async findStudentInClass(id: string): Promise<Student[]> {
+        const students = await StudentModel.find({classId:id,isDeleted:false})
+        return students.map(student => student.toObject() as Student);
     }
 }

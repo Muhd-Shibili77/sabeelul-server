@@ -12,6 +12,10 @@ export class ClassUseCase {
         if(!name){
             throw new Error('All required fields must be filled.')
         }
+        const existClass = await this.classRepository.findClassByName(name)
+        if(existClass){
+            throw new Error('class is already exist')
+        }
         const cls = new Class({
             name:name,
             subjects:subjects
@@ -40,6 +44,11 @@ export class ClassUseCase {
         const cls= await this.classRepository.findClassById(id)
         if(!cls){
             throw new Error('Class not found')
+        }
+        const students = await this.classRepository.findStudentInClass(id)
+
+        if(students.length > 0){
+            throw new Error('Cannot delete class: Please remove all assigned students before deleting the class.')
         }
         await this.classRepository.deleteClass(id)
 

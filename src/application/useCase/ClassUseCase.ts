@@ -62,20 +62,20 @@ export class ClassUseCase {
         const updatedClass = await this.classRepository.addScore(id,academicYear,item,score)
         return updatedClass
     }
-    async editScore(id:string,academicYear:string,item:string,score:number):Promise<Class>{
+    async editScore(id:string,markId:string,item:string,score:number):Promise<Class>{
         const cls = await this.classRepository.findClassById(id)
         if(!cls){
             throw new Error('Class not found')
         }
-        const updatedClass = await this.classRepository.editScore(id,academicYear,item,score)
+        const updatedClass = await this.classRepository.editScore(id,markId,item,score)
         return updatedClass
     }
-    async deleteScore(id:string,academicYear:string,item:string):Promise<Class>{
-        const cls = await this.classRepository.findClassById(id)
+    async deleteScore(classId:string,markId:string):Promise<void>{
+        const cls = await this.classRepository.findClassById(classId)
         if(!cls){
             throw new Error('Class not found')
         }
-        const updatedClass = await this.classRepository.deleteScore(id,academicYear,item)
+        const updatedClass = await this.classRepository.deleteScore(classId,markId)
         return updatedClass
     }
     async fetchClass(id:string):Promise<Class>{

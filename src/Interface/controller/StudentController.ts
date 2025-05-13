@@ -88,6 +88,29 @@ export class StudentController{
             res.status(500).json({ success: false, message: error.message });
         }
     }
+    async deleteStudentExtraScore(req:Request,res:Response){
+        try {
+            const id: string = req.params.id;
+            await this.studentUsecase.deleteExtraScore(id)
+            res.status(200).json({ success: true,message:'delete Extra mark to student is successfull' });
+   
+        }catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
+    async editStudentExtraScore(req:Request,res:Response){
+        try {
+            const id: string = req.params.id;
+            const {mark} = req.body 
+            await this.studentUsecase.editExtraScore(id,mark)
+            res.status(200).json({ success: true,message:'edit Extra mark to student is successfull' });
+   
+        }catch (error: any) {
+            console.error(error);
+            res.status(500).json({ success: false, message: error.message });
+        }
+    }
 
     async addMentorScore(req:Request,res:Response){
         try {

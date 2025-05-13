@@ -7,8 +7,8 @@ export interface IClassRepository {
     findClassById(id:string):Promise<Class | null> ;
     fetchClasses(query:object,page?:number,limit?:number): Promise<{classes: Class[], totalPages?: number}>;
     addScore(id:string,academicYear:string,item:string,score:number):Promise<Class>;
-    editScore(id:string,academicYear:string,item:string,score:number):Promise<Class>;
-    deleteScore(id:string,academicYear:string,item:string):Promise<Class>;
+    editScore(id:string,markId:string,item:string,score:number):Promise<Class>;
+    deleteScore(classId:string,markId:string):Promise<void>;
     totalScore():Promise<Partial<Class>[]>
     addSubject(id:string,subject:string):Promise<void>
     deleteSubject(id:string,subject:string):Promise<void>

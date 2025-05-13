@@ -192,6 +192,23 @@ export class StudentUseCase {
       }
       return student
   }
+  async deleteExtraScore(id:string){
+    if(!id){
+        throw new Error('id is required')
+      }
+      const student = await this.studentRepository.deleteExtraScore(id)
+      return student
+  }
+  async editExtraScore(id:string,mark:number){
+    if(!id){
+        throw new Error('id is required')
+      }
+      if(!mark){
+        throw new Error('mark is required')
+      }
+      const student = await this.studentRepository.editExtraScore(id,mark)
+      return student
+  }
 
   async addMentorScore(id:string,mark:number):Promise<Student>{
     const academicYear = getCurrentAcademicYear()

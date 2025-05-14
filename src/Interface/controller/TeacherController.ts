@@ -1,6 +1,6 @@
 import { TeacherUseCase } from "../../application/useCase/TeacherUseCase";
 import { Request,Response } from "express";
-
+import { StatusCode } from "../../application/constants/statusCode";
 export class TeacherController {
 
     constructor(private teacherUseCase: TeacherUseCase) {}
@@ -19,11 +19,11 @@ export class TeacherController {
               }
             : {isDeleted: false };
             const {teachers,totalPages} = await this.teacherUseCase.fetchTeachers(query,page,limit)
-            res.status(200).json({ success: true,message:'Fetching of teacher is successfull', teachers, totalPages:totalPages });
+            res.status(StatusCode.OK).json({ success: true,message:'Fetching of teacher is successfull', teachers, totalPages:totalPages });
             
         } catch (error: any) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
    
@@ -34,11 +34,11 @@ export class TeacherController {
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
             
             const newTeacher = await this.teacherUseCase.addTeacher(name,phone,address, email, password, registerNumber,profile)
-            res.status(200).json({ success: true,message:'Adding of teacher is successfull', data: newTeacher });
+            res.status(StatusCode.OK).json({ success: true,message:'Adding of teacher is successfull', data: newTeacher });
             
         } catch (error: any) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
   
@@ -46,11 +46,11 @@ export class TeacherController {
         try {
             const id: string = req.params.id;
             await this.teacherUseCase.deleteTeacher(id);
-            res.status(200).json({ success: true,message:'Deleting of teacher is successfull' });
+            res.status(StatusCode.OK).json({ success: true,message:'Deleting of teacher is successfull' });
             
         } catch (error: any) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
     
@@ -60,11 +60,11 @@ export class TeacherController {
             const id: string = req.params.id;
             const { name,phone,address, email, password, registerNumber,profile } = req.body;
             const updatedTeacher = await this.teacherUseCase.updateTeacher(id,name,phone,address, email, password, registerNumber,profile)
-            res.status(200).json({ success: true,message:'Updating of teacher is successfull', data: updatedTeacher });
+            res.status(StatusCode.OK).json({ success: true,message:'Updating of teacher is successfull', data: updatedTeacher });
             
         } catch (error: any) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
 
@@ -72,10 +72,10 @@ export class TeacherController {
         try {
             const id:string = req.params.id
             const teacher = await this.teacherUseCase.fetchProfile(id)
-            res.status(200).json({ success: true,message:'Updating of teacher is successfull', teacher });
+            res.status(StatusCode.OK).json({ success: true,message:'Updating of teacher is successfull', teacher });
         } catch (error: any) {
             console.error(error);
-            res.status(500).json({ success: false, message: error.message });
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
    

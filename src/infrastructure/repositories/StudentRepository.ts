@@ -415,6 +415,7 @@ async editExtraScore(id: string, mark: number): Promise<void> {
             studentId: "$_id",
             classId: "$classId",
             className: "$classInfo.name",
+            classLogo: "$classInfo.icon",
           },
           totalExtraMark: { $sum: "$extraMark" },
           totalMentorMark: { $sum: "$mentorMark" },
@@ -433,6 +434,7 @@ async editExtraScore(id: string, mark: number): Promise<void> {
         $group: {
           _id: "$_id.classId",
           className: { $first: "$_id.className" },
+          classLogo: { $first: "$_id.classLogo" },
           totalStudentScore: { $sum: "$studentTotalScore" },
           classInfo: { $first: "$classInfo" },
         },
@@ -478,6 +480,7 @@ async editExtraScore(id: string, mark: number): Promise<void> {
           _id: 0,
           classId: "$_id",
           className: 1,
+          classLogo:1,
           totalStudentScore: 1,
           classScore: 1,
           totalScore: 1,

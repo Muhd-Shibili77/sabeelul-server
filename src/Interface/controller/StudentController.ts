@@ -127,6 +127,7 @@ export class StudentController{
         try {
             const id:string = req.params.id
             const {classId,subjectName,phase,mark}  = req.body
+            
             const student = await this.studentUsecase.addCceScore(id,classId,subjectName,phase,mark)
             res.status(StatusCode.OK).json({success:true,message:'add CCE mark to student is successful',data:student})
 
@@ -164,7 +165,7 @@ export class StudentController{
         try {
             const id:string = req.params.id
             const performance = await this.studentUsecase.performance(id)
-            res.status(StatusCode.OK).json({success:true,message:'fetching dashboard successfull',performance})
+            res.status(StatusCode.OK).json({success:true,message:'fetching performance details successfull',performance})
 
             
         } catch (error:any) {

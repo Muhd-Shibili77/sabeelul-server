@@ -5,6 +5,13 @@ import { IStudentRepository } from "../interface/IStudentRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
 
+
+interface SubjectMark {
+  subjectName: string;
+  phase: string;
+  mark: number;
+}
+
 export class StudentUseCase {
   constructor(private studentRepository: IStudentRepository) {}
 
@@ -342,31 +349,41 @@ export class StudentUseCase {
 
   }
 
-  async performance(id:string){
-    if(!id){
-      throw new Error('id is required')
-    }
-    const student = await this.studentRepository.fetchProfile(id)
-    if(student.isDeleted){
-      throw new Error('student is deleted')
-    }
-    const academicYear = getCurrentAcademicYear()
-
-    let cceMarkTotal = 0;
-    if (student.cceMarks?.length) {
-      student.cceMarks
-        .filter(cce => cce.academicYear === academicYear)
-        .forEach(cce => {
-          cce.subjects?.forEach(subject => {
-            if (subject.mark) {
-              cceMarkTotal += Math.round(subject.mark * 0.2);
-            }
-          });
+  async performance(id: string) {
+  if (!id) {
+    throw new Error('id is required');
+  }
+  const student = await this.studentRepository.fetchProfile(id);
+  if (student.isDeleted) {
+    throw new Error('student is deleted');
+  }
+  const academicYear = getCurrentAcademicYear();
+  
+  
+  let cceMarkTotal = 0;
+  const subjectWiseMarks:SubjectMark[] = [];
+  
+  if (student.cceMarks?.length) {
+    student.cceMarks
+      .filter(cce => cce.academicYear === academicYear)
+      .forEach(cce => {
+        cce.subjects?.forEach(subject => {
+          if (subject.mark) {
+            const calculatedMark = Math.round(subject.mark * 0.2);
+            cceMarkTotal += calculatedMark;
+            
+            // Store individual subject marks
+            subjectWiseMarks.push({
+              subjectName: subject.subjectName,
+              phase : subject.phase,
+              mark: subject.mark,
+            });
+          }
         });
-    }
-    
+      });
+  }
 
-    const mentorMarkTotal = student.mentorMarks
+  const mentorMarkTotal = student.mentorMarks
     ?.filter(m => m.academicYear === academicYear)
     .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
 
@@ -374,35 +391,37 @@ export class StudentUseCase {
     ?.filter(e => e.academicYear === academicYear)
     .reduce((sum, e) => sum + (e.mark || 0), 0) || 0);
 
-    const totalMarks = Math.round(cceMarkTotal + mentorMarkTotal + extraMarkTotal+200);
+  const totalMarks = Math.round(cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200);
 
+  // Filter and map all extraMarks in this academic year
+  const achievementDetails = student.extraMarks
+    ?.filter(e => e.academicYear === academicYear)
+    .map(e => {
+      let name: string | null = null;
 
-   // Filter and map all extraMarks in this academic year
-const achievementDetails = student.extraMarks
-?.filter(e => e.academicYear === academicYear)
-.map(e => {
-  let name: string | null = null;
+      if (e.programId && typeof e.programId === 'object') {
+        name = (e.programId as Program).name;
+      } else if (e.customProgramName) {
+        name = e.customProgramName;
+      }
 
-  if (e.programId && typeof e.programId === 'object') {
-    name = (e.programId as Program).name;
-  } else if (e.customProgramName) {
-    name = e.customProgramName;
-  }
-
-  return {
-    name,
-    mark: e.mark,
-    date:e.date,
+      return {
+        name,
+        mark: e.mark,
+        date: e.date,
+      };
+    }) || [];
+    
+  const details = {
+    totalScore: totalMarks,
+    cceScore: cceMarkTotal,
+    creditScore: extraMarkTotal,
+    subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
+    achievements: achievementDetails, // Fixed the typo in the property name
   };
-}) || [];
-  const details={
-    totalScore:totalMarks,
-    cceScore:cceMarkTotal,
-    creditScore:extraMarkTotal,
-    achievments:achievementDetails,
-  }
-  return details
-  }
+  
+  return details;
+}
 
   async fetchByClass(classId:string){
       if(!classId){

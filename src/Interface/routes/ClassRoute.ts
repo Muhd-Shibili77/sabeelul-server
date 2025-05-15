@@ -3,6 +3,7 @@ import { ClassController } from "../controller/ClassController";
 import { ClassUseCase } from "../../application/useCase/ClassUseCase";
 import { ClassRepository } from "../../infrastructure/repositories/ClassRepository";
 import { authenticateJWT } from "../middlewares/authMiddleware";
+import { uploadClassIcon } from "../../infrastructure/config/multer";
 
 const classRepository = new ClassRepository();
 const classUseCase = new ClassUseCase(classRepository);
@@ -13,7 +14,7 @@ router.route('/')
 .get(async (req: Request, res: Response) => {
     await classController.fetchClass(req, res)
 })
-.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+.post(uploadClassIcon.single('icon'),authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.addClass(req, res)
 })
 
@@ -24,7 +25,7 @@ router.route('/:id')
 .delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.deleteClass(req, res)
 })
-.put(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+.put(uploadClassIcon.single('icon'),authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.updateClass(req, res)
 })
 router.route('/score/:id')

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IClass extends Document {
   name: string;
+  icon:string;
   subjects: string[];
   isDeleted: boolean;
   marks: {
@@ -14,6 +15,10 @@ export interface IClass extends Document {
 const classSchema = new Schema<IClass>(
   {
     name: {
+      type: String,
+      required: true,
+    },
+    icon: {
       type: String,
       required: true,
     },

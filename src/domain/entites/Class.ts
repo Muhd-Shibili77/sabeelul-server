@@ -1,6 +1,7 @@
 class Class{
     public readonly id!:string;
     public name!:string
+    public icon!:string
     public subjects!:string[];
     public isDeleted!:boolean;
     public marks!:{

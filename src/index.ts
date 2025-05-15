@@ -10,12 +10,15 @@ import ProgramRoute from './Interface/routes/ProgramRoute';
 import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
+import path from "path";
 dotenv.config();
 const app = express();
 const URL = process.env.API_URL as string;
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(
   cors({
     origin: [URL, 'http://localhost:5173'],

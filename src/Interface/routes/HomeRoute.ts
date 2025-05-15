@@ -13,8 +13,14 @@ const router = Router();
 router.get('/',async(req:Request,res:Response)=>{
     await homeController.fetchDetails(req,res)
 })
+router.get('/leaderboard/classes',async(req:Request,res:Response)=>{
+    await homeController.fetchClassLeaderBoard(req,res)
+})
+
 router.get('/leaderboard/:classId',async(req:Request,res:Response)=>{
     await homeController.classWiseLeaderBoard(req,res)
 })
+
+
 
 export default router;

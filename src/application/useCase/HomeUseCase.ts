@@ -24,4 +24,9 @@ export class HomeUseCase{
         const classLeaderBoard = await this.studentRepository.getTopStudentsInClass(classId)
         return classLeaderBoard
     }
+    async fetchClassLeaderBoard(){
+       
+        const classLeaderBoard = await this.studentRepository.getTopClass()
+        return classLeaderBoard
+    }
 }

@@ -7,6 +7,7 @@ import { ClassPerformance } from "../../domain/types/classPerfromance";
 import classModel from "../models/ClassModel";
 import Teacher from "../../domain/entites/Teacher";
 import TeacherModel from "../models/TeacherModel";
+import Class from "../../domain/entites/Class";
 export class StudentRepository implements IStudentRepository {
   async addStudent(student: Student): Promise<Student> {
     const newStudent = new StudentModel(student);
@@ -718,4 +719,112 @@ async editExtraScore(id: string, mark: number): Promise<void> {
 
     return !!student || !!teacher;
   }
+ async getTopClass(): Promise<{ className: string; totalScore: number }[]> {
+  const academicYear = getCurrentAcademicYear();
+
+  const pipeline: PipelineStage[] = [
+    {
+      $match: { isDeleted: false },
+    },
+    {
+      $addFields: {
+        totalExtraMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$extraMarks",
+                  as: "em",
+                  cond: { $eq: ["$$em.academicYear", academicYear] },
+                },
+              },
+              as: "emf",
+              in: "$$emf.mark",
+            },
+          },
+        },
+        totalMentorMark: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$mentorMarks",
+                  as: "mm",
+                  cond: { $eq: ["$$mm.academicYear", academicYear] },
+                },
+              },
+              as: "mmf",
+              in: "$$mmf.mark",
+            },
+          },
+        },
+        totalCceScore: {
+          $sum: {
+            $map: {
+              input: {
+                $filter: {
+                  input: "$cceMarks",
+                  as: "cce",
+                  cond: { $eq: ["$$cce.academicYear", academicYear] },
+                },
+              },
+              as: "ccef",
+              in: {
+                $sum: {
+                  $map: {
+                    input: "$$ccef.subjects",
+                    as: "sub",
+                    in: {
+                      $multiply: ["$$sub.mark", 0.2],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        performanceScore: {
+          $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$classId",
+        totalScore: { $sum: "$performanceScore" },
+      },
+    },
+    {
+      $lookup: {
+        from: "classes",
+        localField: "_id",
+        foreignField: "_id",
+        as: "classInfo",
+      },
+    },
+    {
+      $unwind: "$classInfo",
+    },
+    {
+      $project: {
+        className: "$classInfo.name",
+        totalScore: 1,
+      },
+    },
+    {
+      $sort: { totalScore: -1 },
+    },
+    {
+      $limit: 10,
+    },
+  ];
+
+  const result = await StudentModel.aggregate(pipeline);
+  return result || [];
+}
+
 }

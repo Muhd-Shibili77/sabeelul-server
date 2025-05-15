@@ -1,3 +1,4 @@
+import Class from "../../domain/entites/Class";
 import Student from "../../domain/entites/Student";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 export interface IStudentRepository{
@@ -20,4 +21,5 @@ export interface IStudentRepository{
     bestPerformerOverall(): Promise<Student[]>
     getTopStudentsInClass(classId: string): Promise<Student[]>
     isExist(data:string):Promise<boolean>
+    getTopClass():Promise<{ className: string; totalScore: number }[]>
 }

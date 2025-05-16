@@ -1,5 +1,6 @@
 import { ITeacherRepository } from "../../application/interface/ITeacherRepository";
 import Teacher from "../../domain/entites/Teacher";
+import StudentModel from "../models/StudentModel";
 import TeacherModel from "../models/TeacherModel";
 
 
@@ -62,4 +63,12 @@ export class TeacherRepository implements ITeacherRepository {
       const teacher = await TeacherModel.findById(id)
       return new Teacher(teacher?.toObject() as Teacher)
   }
+  async isExist(data: string): Promise<boolean> {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex
+      const query = isEmail ? { email: data } : { phone: data };
+      const student = await StudentModel.findOne(query).lean();
+      const teacher = await TeacherModel.findOne(query).lean();
+  
+      return !!student || !!teacher;
+    }
 }

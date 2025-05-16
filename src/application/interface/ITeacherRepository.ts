@@ -10,4 +10,5 @@ export interface ITeacherRepository {
     updateTeacher(id: string, teacher: Teacher): Promise<Teacher>;
     countTeacher():Promise<number>
     fetchProfile(id:string):Promise<Teacher>
+    isExist(data: string): Promise<boolean>
 }

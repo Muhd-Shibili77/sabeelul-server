@@ -5,9 +5,7 @@ import StudentModel from "../models/StudentModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 import classModel from "../models/ClassModel";
-import Teacher from "../../domain/entites/Teacher";
 import TeacherModel from "../models/TeacherModel";
-import Class from "../../domain/entites/Class";
 export class StudentRepository implements IStudentRepository {
   async addStudent(student: Student): Promise<Student> {
     const newStudent = new StudentModel(student);

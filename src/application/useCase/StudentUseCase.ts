@@ -5,7 +5,6 @@ import { IStudentRepository } from "../interface/IStudentRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
 
-
 interface SubjectMark {
   subjectName: string;
   phase: string;
@@ -54,8 +53,12 @@ export class StudentUseCase {
     if (!/^[0-9]{10}$/.test(phoneStr)) {
       throw new Error("Phone number must be exactly 10 digits.");
     }
-    if (password.length < 5) {
-      throw new Error("Password must be at least 5 characters long.");
+    const isExist = await this.studentRepository.isExist(email);
+    if (isExist) {
+      throw new Error("Email already exist");
+    }
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters long.");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -100,32 +103,31 @@ export class StudentUseCase {
     if (!name) {
       throw new Error("Name is required.");
     }
-    
+
     if (!email) {
       throw new Error("Email is required.");
     }
-    
-  
+
     if (!admissionNo) {
       throw new Error("Admission number is required.");
     }
-    
+
     if (!address) {
       throw new Error("Address is required.");
     }
-    
+
     if (!phone) {
       throw new Error("Phone number is required.");
     }
-    
+
     if (!guardianName) {
       throw new Error("Guardian name is required.");
     }
-    
+
     if (!className) {
       throw new Error("Class is required.");
     }
-    
+
     if (!validator.isEmail(email)) {
       throw new Error("Invalid email format.");
     }
@@ -133,14 +135,18 @@ export class StudentUseCase {
     if (!/^[0-9]{10}$/.test(phoneStr)) {
       throw new Error("Phone number must be exactly 10 digits.");
     }
-    if (password != '' && password.length < 5) {
-      throw new Error('Password must be at least 5 characters long.');
-  }
+    if (password != "" && password.length < 5) {
+      throw new Error("Password must be at least 5 characters long.");
+    }
+    // const isExist = await this.studentRepository.isExist(email);
+    // if (isExist) {
+    //   throw new Error("Email already exist");
+    // }
 
-    const existStudent = await this.studentRepository.findStudentById(id)
-    let hashedPassword = existStudent?.password
-    if(password !=''){
-        hashedPassword = await bcrypt.hash(password, 10);
+    const existStudent = await this.studentRepository.findStudentById(id);
+    let hashedPassword = existStudent?.password;
+    if (password != "") {
+      hashedPassword = await bcrypt.hash(password, 10);
     }
 
     const student = new Student({
@@ -162,187 +168,210 @@ export class StudentUseCase {
     return updatedStudent;
   }
 
-  async findByAdmissinNo(admissionNo:string):Promise<Student>{
-      if(!admissionNo){
-        throw new Error('AdmissionNo required')
-      }
+  async findByAdmissinNo(admissionNo: string): Promise<Student> {
+    if (!admissionNo) {
+      throw new Error("AdmissionNo required");
+    }
 
-      const student = await this.studentRepository.findByAdNo(admissionNo)
+    const student = await this.studentRepository.findByAdNo(admissionNo);
 
-      if(!student){
-        throw new Error('student not found')
-      }
+    if (!student) {
+      throw new Error("student not found");
+    }
 
-      return student 
+    return student;
   }
-  async addExtraScore(id:string,programName:string,mark:number):Promise<Student>{
-      const academicYear = getCurrentAcademicYear()
-    if(!id){
-        throw new Error('id is required')
-      }
-      if(!academicYear){
-        throw new Error('academicYear is required')
-      }
-      if(!programName){
-        throw new Error('programName is required')
-      }
-      if(!mark){
-        throw new Error('mark is required')
-      }
-      if(mark <= 0){
-        throw new Error('mark is must be greater than zero')
-      }
-      const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-      const student = await this.studentRepository.addExtraScore(id,academicYear,programName,mark)
-      if(!student){
-        throw new Error('score is not updated to student')
-      }
-      return student
+  async addExtraScore(
+    id: string,
+    programName: string,
+    mark: number
+  ): Promise<Student> {
+    const academicYear = getCurrentAcademicYear();
+    if (!id) {
+      throw new Error("id is required");
+    }
+    if (!academicYear) {
+      throw new Error("academicYear is required");
+    }
+    if (!programName) {
+      throw new Error("programName is required");
+    }
+    if (!mark) {
+      throw new Error("mark is required");
+    }
+    if (mark <= 0) {
+      throw new Error("mark is must be greater than zero");
+    }
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
+    }
+    const student = await this.studentRepository.addExtraScore(
+      id,
+      academicYear,
+      programName,
+      mark
+    );
+    if (!student) {
+      throw new Error("score is not updated to student");
+    }
+    return student;
   }
-  async deleteExtraScore(id:string){
-    if(!id){
-        throw new Error('id is required')
-      }
-      const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-      const student = await this.studentRepository.deleteExtraScore(id)
-      return student
+  async deleteExtraScore(id: string) {
+    if (!id) {
+      throw new Error("id is required");
+    }
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
+    }
+    const student = await this.studentRepository.deleteExtraScore(id);
+    return student;
   }
-  async editExtraScore(id:string,mark:number){
-    if(!id){
-        throw new Error('id is required')
-      }
-      if(!mark){
-        throw new Error('mark is required')
-      }
-      const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-      const student = await this.studentRepository.editExtraScore(id,mark)
-      return student
-  }
-
-  async addMentorScore(id:string,mark:number):Promise<Student>{
-    const academicYear = getCurrentAcademicYear()
-    if(!id){
-      throw new Error('id is required')
+  async editExtraScore(id: string, mark: number) {
+    if (!id) {
+      throw new Error("id is required");
     }
-    if(!academicYear){
-      throw new Error('academicYear is required')
+    if (!mark) {
+      throw new Error("mark is required");
     }
-    if(!mark){
-      throw new Error('mark is required')
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
     }
-    if(mark <= 0){
-      throw new Error('mark is must be greater than zero')
-    }
-    const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-    const student = await this.studentRepository.addMentorScore(id,academicYear,mark)
-    if(!student){
-      throw new Error('Adding mentor failed')
-    }
-    return student
+    const student = await this.studentRepository.editExtraScore(id, mark);
+    return student;
   }
 
-  async addCceScore(id:string,classId: string,phase:string, subjectName: string, mark: number):Promise<Student>{
-    const academicYear = getCurrentAcademicYear()
-    if(!id){
-      throw new Error('id is required')
+  async addMentorScore(id: string, mark: number): Promise<Student> {
+    const academicYear = getCurrentAcademicYear();
+    if (!id) {
+      throw new Error("id is required");
     }
-    if(!academicYear){
-      throw new Error('academicYear is required')
+    if (!academicYear) {
+      throw new Error("academicYear is required");
     }
-    if(!classId){
-      throw new Error('className is required')
+    if (!mark) {
+      throw new Error("mark is required");
     }
-    if(!subjectName){
-      throw new Error('subjectName is required')
+    if (mark <= 0) {
+      throw new Error("mark is must be greater than zero");
     }
-    if(!phase){
-      throw new Error('phase is required')
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
     }
-    if(!mark){
-      throw new Error('mark is required')
+    const student = await this.studentRepository.addMentorScore(
+      id,
+      academicYear,
+      mark
+    );
+    if (!student) {
+      throw new Error("Adding mentor failed");
     }
-    if(mark <= 0){
-      throw new Error('mark is must be greater than zero')
-    }
-    const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-
-    
-    const updatedStudent = await this.studentRepository.addCceScore(id,academicYear,classId,phase,subjectName,mark)
-    if(!updatedStudent){
-      throw new Error('Failed to add CCE mark to student')
-    }
-    return updatedStudent
-  }
-  async fetchProfile(id:string){
-     if(!id){
-        throw new Error('id is required')
-     }
-     const studentExist = await this.studentRepository.findStudentById(id)
-      if(!studentExist){
-        throw new Error('student not exist')
-      }
-     const student = await this.studentRepository.fetchProfile(id)
-     if(student.isDeleted){
-        throw new Error('student is deleted')
-     }
-     return student
+    return student;
   }
 
+  async addCceScore(
+    id: string,
+    classId: string,
+    phase: string,
+    subjectName: string,
+    mark: number
+  ): Promise<Student> {
+    const academicYear = getCurrentAcademicYear();
+    if (!id) {
+      throw new Error("id is required");
+    }
+    if (!academicYear) {
+      throw new Error("academicYear is required");
+    }
+    if (!classId) {
+      throw new Error("className is required");
+    }
+    if (!subjectName) {
+      throw new Error("subjectName is required");
+    }
+    if (!phase) {
+      throw new Error("phase is required");
+    }
+    if (!mark) {
+      throw new Error("mark is required");
+    }
+    if (mark <= 0) {
+      throw new Error("mark is must be greater than zero");
+    }
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
+    }
 
-  async dashboard(id:string){
-    
-    if(!id){
-      throw new Error('id is required')
+    const updatedStudent = await this.studentRepository.addCceScore(
+      id,
+      academicYear,
+      classId,
+      phase,
+      subjectName,
+      mark
+    );
+    if (!updatedStudent) {
+      throw new Error("Failed to add CCE mark to student");
     }
-    const student = await this.studentRepository.fetchProfile(id)
-    if(student.isDeleted){
-      throw new Error('student is deleted')
+    return updatedStudent;
+  }
+  async fetchProfile(id: string) {
+    if (!id) {
+      throw new Error("id is required");
     }
-    const academicYear = getCurrentAcademicYear()
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
+      throw new Error("student not exist");
+    }
+    const student = await this.studentRepository.fetchProfile(id);
+    if (student.isDeleted) {
+      throw new Error("student is deleted");
+    }
+    return student;
+  }
+
+  async dashboard(id: string) {
+    if (!id) {
+      throw new Error("id is required");
+    }
+    const student = await this.studentRepository.fetchProfile(id);
+    if (student.isDeleted) {
+      throw new Error("student is deleted");
+    }
+    const academicYear = getCurrentAcademicYear();
 
     // Filter extraMarks by academic year and find latest (assuming order is not guaranteed)
     const filteredExtraMarks = student.extraMarks
-    ?.filter(e => e.academicYear === academicYear)
-    .sort((a, b) => b.mark - a.mark); // sort by mark, or add timestamp if available
+      ?.filter((e) => e.academicYear === academicYear)
+      .sort((a, b) => b.mark - a.mark); // sort by mark, or add timestamp if available
 
     const latestExtra = filteredExtraMarks?.[0];
 
     let latestAchievement = null;
     if (latestExtra) {
       const name =
-      latestExtra.programId && typeof latestExtra.programId === 'object'
-        ? (latestExtra.programId as Program).name
-        : latestExtra.customProgramName || null;
-        const mark = latestExtra.mark || 0;
-        const date = latestExtra.date || null;
-        latestAchievement = {
-          name,
-          mark,
-          date,
-        };
+        latestExtra.programId && typeof latestExtra.programId === "object"
+          ? (latestExtra.programId as Program).name
+          : latestExtra.customProgramName || null;
+      const mark = latestExtra.mark || 0;
+      const date = latestExtra.date || null;
+      latestAchievement = {
+        name,
+        mark,
+        date,
+      };
     }
 
     let cceMarkTotal = 0;
     if (student.cceMarks?.length) {
       student.cceMarks
-        .filter(cce => cce.academicYear === academicYear)
-        .forEach(cce => {
-          cce.subjects?.forEach(subject => {
+        .filter((cce) => cce.academicYear === academicYear)
+        .forEach((cce) => {
+          cce.subjects?.forEach((subject) => {
             if (subject.mark) {
               cceMarkTotal += Math.round(subject.mark * 0.2);
             }
@@ -350,108 +379,117 @@ export class StudentUseCase {
         });
     }
 
-    const mentorMarkTotal = student.mentorMarks
-    ?.filter(m => m.academicYear === academicYear)
-    .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+    const mentorMarkTotal =
+      student.mentorMarks
+        ?.filter((m) => m.academicYear === academicYear)
+        .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
 
-  const extraMarkTotal = Math.round(student.extraMarks
-    ?.filter(e => e.academicYear === academicYear)
-    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0);
+    const extraMarkTotal = Math.round(
+      student.extraMarks
+        ?.filter((e) => e.academicYear === academicYear)
+        .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
+    );
 
-    const totalMarks = Math.round((cceMarkTotal + mentorMarkTotal + extraMarkTotal+200));
+    const totalMarks = Math.round(
+      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200
+    );
 
-    const details ={
-      name:student.name,
-      profileImage:student.profileImage,
-      class:student.classId,
+    const details = {
+      name: student.name,
+      profileImage: student.profileImage,
+      class: student.classId,
       marks: totalMarks,
-      latestAchievement:latestAchievement,
-    }
+      latestAchievement: latestAchievement,
+    };
 
-    return details
-
+    return details;
   }
 
   async performance(id: string) {
-  if (!id) {
-    throw new Error('id is required');
-  }
-  const student = await this.studentRepository.fetchProfile(id);
-  if (student.isDeleted) {
-    throw new Error('student is deleted');
-  }
-  const academicYear = getCurrentAcademicYear();
-  
-  
-  let cceMarkTotal = 0;
-  const subjectWiseMarks:SubjectMark[] = [];
-  
-  if (student.cceMarks?.length) {
-    student.cceMarks
-      .filter(cce => cce.academicYear === academicYear)
-      .forEach(cce => {
-        cce.subjects?.forEach(subject => {
-          if (subject.mark) {
-            const calculatedMark = Math.round(subject.mark * 0.2);
-            cceMarkTotal += calculatedMark;
-            
-            // Store individual subject marks
-            subjectWiseMarks.push({
-              subjectName: subject.subjectName,
-              phase : subject.phase,
-              mark: subject.mark,
-            });
-          }
+    if (!id) {
+      throw new Error("id is required");
+    }
+    const student = await this.studentRepository.fetchProfile(id);
+    if (student.isDeleted) {
+      throw new Error("student is deleted");
+    }
+    const academicYear = getCurrentAcademicYear();
+
+    let cceMarkTotal = 0;
+    const subjectWiseMarks: SubjectMark[] = [];
+
+    if (student.cceMarks?.length) {
+      student.cceMarks
+        .filter((cce) => cce.academicYear === academicYear)
+        .forEach((cce) => {
+          cce.subjects?.forEach((subject) => {
+            if (subject.mark) {
+              const calculatedMark = Math.round(subject.mark * 0.2);
+              cceMarkTotal += calculatedMark;
+
+              // Store individual subject marks
+              subjectWiseMarks.push({
+                subjectName: subject.subjectName,
+                phase: subject.phase,
+                mark: subject.mark,
+              });
+            }
+          });
         });
-      });
+    }
+
+    const mentorMarkTotal =
+      student.mentorMarks
+        ?.filter((m) => m.academicYear === academicYear)
+        .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+
+    const extraMarkTotal = Math.round(
+      student.extraMarks
+        ?.filter((e) => e.academicYear === academicYear)
+        .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
+    );
+
+    const totalMarks = Math.round(
+      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200
+    );
+
+    // Filter and map all extraMarks in this academic year
+    const achievementDetails =
+      student.extraMarks
+        ?.filter((e) => e.academicYear === academicYear)
+        .map((e) => {
+          let name: string | null = null;
+
+          if (e.programId && typeof e.programId === "object") {
+            name = (e.programId as Program).name;
+          } else if (e.customProgramName) {
+            name = e.customProgramName;
+          }
+
+          return {
+            name,
+            mark: e.mark,
+            date: e.date,
+          };
+        }) || [];
+
+    const details = {
+      totalScore: totalMarks,
+      cceScore: cceMarkTotal,
+      creditScore: extraMarkTotal,
+      subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
+      achievements: achievementDetails, // Fixed the typo in the property name
+    };
+
+    return details;
   }
 
-  const mentorMarkTotal = student.mentorMarks
-    ?.filter(m => m.academicYear === academicYear)
-    .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+  async fetchByClass(classId: string) {
+    if (!classId) {
+      throw new Error("class id is required");
+    }
+    const students = await this.studentRepository.findByClass(classId);
 
-  const extraMarkTotal = Math.round(student.extraMarks
-    ?.filter(e => e.academicYear === academicYear)
-    .reduce((sum, e) => sum + (e.mark || 0), 0) || 0);
-
-  const totalMarks = Math.round(cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200);
-
-  // Filter and map all extraMarks in this academic year
-  const achievementDetails = student.extraMarks
-    ?.filter(e => e.academicYear === academicYear)
-    .map(e => {
-      let name: string | null = null;
-
-      if (e.programId && typeof e.programId === 'object') {
-        name = (e.programId as Program).name;
-      } else if (e.customProgramName) {
-        name = e.customProgramName;
-      }
-
-      return {
-        name,
-        mark: e.mark,
-        date: e.date,
-      };
-    }) || [];
-    
-  const details = {
-    totalScore: totalMarks,
-    cceScore: cceMarkTotal,
-    creditScore: extraMarkTotal,
-    subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
-    achievements: achievementDetails, // Fixed the typo in the property name
-  };
-  
-  return details;
-}
-
-  async fetchByClass(classId:string){
-      if(!classId){
-        throw new Error('class id is required')
-      }
-      const students = await this.studentRepository.findByClass(classId)
-
-      return students
+    return students;
   }
 }

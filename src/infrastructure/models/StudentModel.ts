@@ -119,15 +119,12 @@ const studentSchema = new Schema({
         subjects: [{
             subjectName: {
                 type: String,
-
             },
             phase: {
                 type: String,
-
             },
             mark: {
                 type: Number,
-
             }
         }]
    }] 

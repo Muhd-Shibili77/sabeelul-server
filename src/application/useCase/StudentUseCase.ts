@@ -192,7 +192,10 @@ export class StudentUseCase {
       if(mark <= 0){
         throw new Error('mark is must be greater than zero')
       }
-
+      const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
+      }
       const student = await this.studentRepository.addExtraScore(id,academicYear,programName,mark)
       if(!student){
         throw new Error('score is not updated to student')
@@ -203,6 +206,10 @@ export class StudentUseCase {
     if(!id){
         throw new Error('id is required')
       }
+      const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
+      }
       const student = await this.studentRepository.deleteExtraScore(id)
       return student
   }
@@ -212,6 +219,10 @@ export class StudentUseCase {
       }
       if(!mark){
         throw new Error('mark is required')
+      }
+      const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
       }
       const student = await this.studentRepository.editExtraScore(id,mark)
       return student
@@ -231,6 +242,10 @@ export class StudentUseCase {
     if(mark <= 0){
       throw new Error('mark is must be greater than zero')
     }
+    const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
+      }
     const student = await this.studentRepository.addMentorScore(id,academicYear,mark)
     if(!student){
       throw new Error('Adding mentor failed')
@@ -261,6 +276,10 @@ export class StudentUseCase {
     if(mark <= 0){
       throw new Error('mark is must be greater than zero')
     }
+    const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
+      }
 
     
     const updatedStudent = await this.studentRepository.addCceScore(id,academicYear,classId,phase,subjectName,mark)
@@ -273,6 +292,10 @@ export class StudentUseCase {
      if(!id){
         throw new Error('id is required')
      }
+     const studentExist = await this.studentRepository.findStudentById(id)
+      if(!studentExist){
+        throw new Error('student not exist')
+      }
      const student = await this.studentRepository.fetchProfile(id)
      if(student.isDeleted){
         throw new Error('student is deleted')

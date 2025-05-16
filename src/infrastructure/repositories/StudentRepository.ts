@@ -24,7 +24,7 @@ export class StudentRepository implements IStudentRepository {
     return new Student(updatedStudent.toObject() as Student);
   }
   async findStudentById(id: string): Promise<Student | null> {
-    const student = await StudentModel.findById(id);
+    const student = await StudentModel.findOne({_id:id,isDeleted:false});
     if (!student) {
       return null;
     }
@@ -53,7 +53,7 @@ export class StudentRepository implements IStudentRepository {
     };
   }
   async findByAdNo(admissionNo: string): Promise<Student | null> {
-    const studentDoc = await StudentModel.findOne({ admissionNo });
+    const studentDoc = await StudentModel.findOne({ admissionNo,isDeleted:false });
 
     if (!studentDoc) {
       return null;
@@ -493,7 +493,7 @@ async editExtraScore(id: string, mark: number): Promise<void> {
   }
 
   async findByClass(classId: string): Promise<Student[]> {
-    const students = await StudentModel.find({ classId }).populate("classId");
+    const students = await StudentModel.find({ classId,isDeleted:false }).populate("classId");
 
     return students.map((student) => student.toObject() as Student);
   }

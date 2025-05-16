@@ -59,9 +59,7 @@ export class ClassController {
   async updateClass(req: Request, res: Response) {
     try {
 
-       if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded." });
-      }
+      
 
       const id: string = req.params.id;
       const { name } = req.body;

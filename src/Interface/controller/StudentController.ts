@@ -177,8 +177,7 @@ export class StudentController{
     async fetchByClass(req:Request,res:Response){
        
         try { 
-            const classId:string = req.params.classId
-            
+            const classId:string = req.params.id
             const students = await this.studentUsecase.fetchByClass(classId)
             res.status(StatusCode.OK).json({success:true,message:'fetching students successfull',students})
             

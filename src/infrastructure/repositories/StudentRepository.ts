@@ -22,7 +22,7 @@ export class StudentRepository implements IStudentRepository {
     return new Student(updatedStudent.toObject() as Student);
   }
   async findStudentById(id: string): Promise<Student | null> {
-    const student = await StudentModel.findOne({_id:id,isDeleted:false});
+    const student = await StudentModel.findOne({ _id: id, isDeleted: false });
     if (!student) {
       return null;
     }
@@ -51,7 +51,10 @@ export class StudentRepository implements IStudentRepository {
     };
   }
   async findByAdNo(admissionNo: string): Promise<Student | null> {
-    const studentDoc = await StudentModel.findOne({ admissionNo,isDeleted:false });
+    const studentDoc = await StudentModel.findOne({
+      admissionNo,
+      isDeleted: false,
+    });
 
     if (!studentDoc) {
       return null;
@@ -65,29 +68,29 @@ export class StudentRepository implements IStudentRepository {
     return new Student(studentDoc.toObject() as Student);
   }
 
-async deleteExtraScore(id: string): Promise<null> {
-   const result = await StudentModel.updateOne(
-    { "extraMarks._id": id },
-    { $pull: { extraMarks: { _id: id } } }
-  );
+  async deleteExtraScore(id: string): Promise<null> {
+    const result = await StudentModel.updateOne(
+      { "extraMarks._id": id },
+      { $pull: { extraMarks: { _id: id } } }
+    );
 
-  if (result.modifiedCount === 0) {
-    throw new Error("Extra mark not found or already deleted");
+    if (result.modifiedCount === 0) {
+      throw new Error("Extra mark not found or already deleted");
+    }
+
+    return null;
   }
 
-  return null;
-}
+  async editExtraScore(id: string, mark: number): Promise<void> {
+    const result = await StudentModel.updateOne(
+      { "extraMarks._id": id },
+      { $set: { "extraMarks.$.mark": mark } }
+    );
 
-async editExtraScore(id: string, mark: number): Promise<void> {
-     const result = await StudentModel.updateOne(
-    { "extraMarks._id": id },
-    { $set: { "extraMarks.$.mark": mark } }
-  );
-
-  if (result.modifiedCount === 0) {
-    throw new Error("Extra mark not found or update failed");
+    if (result.modifiedCount === 0) {
+      throw new Error("Extra mark not found or update failed");
+    }
   }
-}
 
   async addExtraScore(
     id: string,
@@ -479,7 +482,7 @@ async editExtraScore(id: string, mark: number): Promise<void> {
           _id: 0,
           classId: "$_id",
           className: 1,
-          classLogo:1,
+          classLogo: 1,
           totalStudentScore: 1,
           classScore: 1,
           totalScore: 1,
@@ -491,8 +494,10 @@ async editExtraScore(id: string, mark: number): Promise<void> {
   }
 
   async findByClass(classId: string): Promise<Student[]> {
-    const students = await StudentModel.find({ classId,isDeleted:false }).populate("classId");
-
+    const students = await StudentModel.find({
+      classId,
+      isDeleted: false,
+    }).populate("classId");
     return students.map((student) => student.toObject() as Student);
   }
 
@@ -717,63 +722,90 @@ async editExtraScore(id: string, mark: number): Promise<void> {
 
     return !!student || !!teacher;
   }
- async getTopClass(): Promise<{ className: string; totalScore: number }[]> {
-  const academicYear = getCurrentAcademicYear();
+  async getTopClass(): Promise<
+    {
+      className: string;
+      classLogo: string;
+      totalStudentScore: number;
+      classScore: number;
+      totalScore: number;
+    }[]
+  > {
+    const academicYear = getCurrentAcademicYear();
 
-  const pipeline: PipelineStage[] = [
-    {
-      $match: { isDeleted: false },
-    },
-    {
-      $addFields: {
-        totalExtraMark: {
-          $sum: {
-            $map: {
-              input: {
-                $filter: {
-                  input: "$extraMarks",
-                  as: "em",
-                  cond: { $eq: ["$$em.academicYear", academicYear] },
+    const pipeline: PipelineStage[] = [
+      // Match non-deleted students
+      {
+        $match: { isDeleted: false },
+      },
+      // Lookup class information
+      {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      // Unwind class info
+      {
+        $unwind: {
+          path: "$classInfo",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      // Calculate student scores
+      {
+        $addFields: {
+          totalExtraMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$extraMarks",
+                    as: "em",
+                    cond: { $eq: ["$$em.academicYear", academicYear] },
+                  },
                 },
+                as: "emf",
+                in: "$$emf.mark",
               },
-              as: "emf",
-              in: "$$emf.mark",
             },
           },
-        },
-        totalMentorMark: {
-          $sum: {
-            $map: {
-              input: {
-                $filter: {
-                  input: "$mentorMarks",
-                  as: "mm",
-                  cond: { $eq: ["$$mm.academicYear", academicYear] },
+          totalMentorMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$mentorMarks",
+                    as: "mm",
+                    cond: { $eq: ["$$mm.academicYear", academicYear] },
+                  },
                 },
+                as: "mmf",
+                in: "$$mmf.mark",
               },
-              as: "mmf",
-              in: "$$mmf.mark",
             },
           },
-        },
-        totalCceScore: {
-          $sum: {
-            $map: {
-              input: {
-                $filter: {
-                  input: "$cceMarks",
-                  as: "cce",
-                  cond: { $eq: ["$$cce.academicYear", academicYear] },
+          totalCceScore: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$cceMarks",
+                    as: "cce",
+                    cond: { $eq: ["$$cce.academicYear", academicYear] },
+                  },
                 },
-              },
-              as: "ccef",
-              in: {
-                $sum: {
-                  $map: {
-                    input: "$$ccef.subjects",
-                    as: "sub",
-                    in: {
-                      $multiply: ["$$sub.mark", 0.2],
+                as: "ccef",
+                in: {
+                  $sum: {
+                    $map: {
+                      input: "$$ccef.subjects",
+                      as: "sub",
+                      in: {
+                        $multiply: ["$$sub.mark", 0.2],
+                      },
                     },
                   },
                 },
@@ -782,47 +814,79 @@ async editExtraScore(id: string, mark: number): Promise<void> {
           },
         },
       },
-    },
-    {
-      $addFields: {
-        performanceScore: {
-          $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+      // Calculate total performance score for each student
+      {
+        $addFields: {
+          studentPerformanceScore: {
+            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+          },
         },
       },
-    },
-    {
-      $group: {
-        _id: "$classId",
-        totalScore: { $sum: "$performanceScore" },
+      // Group by class to get total student scores
+      {
+        $group: {
+          _id: "$classId",
+          className: { $first: "$classInfo.name" },
+          classLogo: { $first: "$classInfo.icon" },
+          totalStudentScore: { $sum: "$studentPerformanceScore" },
+          classInfo: { $first: "$classInfo" },
+        },
       },
-    },
-    {
-      $lookup: {
-        from: "classes",
-        localField: "_id",
-        foreignField: "_id",
-        as: "classInfo",
+      // Calculate class scores
+      {
+        $addFields: {
+          classScore: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.marks",
+                        as: "m",
+                        cond: { $eq: ["$$m.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredMark",
+                    in: "$$filteredMark.score",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+        },
       },
-    },
-    {
-      $unwind: "$classInfo",
-    },
-    {
-      $project: {
-        className: "$classInfo.name",
-        totalScore: 1,
+      // Calculate total score (students + class)
+      {
+        $addFields: {
+          totalScore: {
+            $add: ["$totalStudentScore", "$classScore"],
+          },
+        },
       },
-    },
-    {
-      $sort: { totalScore: -1 },
-    },
-    {
-      $limit: 10,
-    },
-  ];
+      // Project required fields
+      {
+        $project: {
+          _id: 0,
+          className: 1,
+          classLogo: 1,
+          totalStudentScore: 1,
+          classScore: 1,
+          totalScore: 1,
+        },
+      },
+      // Sort by total score in descending order
+      {
+        $sort: { totalScore: -1 },
+      },
+      // Limit to top 10
+      {
+        $limit: 10,
+      },
+    ];
 
-  const result = await StudentModel.aggregate(pipeline);
-  return result || [];
-}
-
+    const result = await StudentModel.aggregate(pipeline);
+    return result || [];
+  }
 }

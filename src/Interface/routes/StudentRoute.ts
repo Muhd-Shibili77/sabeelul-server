@@ -2,9 +2,11 @@ import { Router,Request,Response } from "express";
 import { StudentController } from "../controller/StudentController";
 import { StudentUseCase } from "../../application/useCase/StudentUseCase";
 import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
+import { MarkLogRepository } from "../../infrastructure/repositories/MarkLogRepository";
 import { authenticateJWT } from "../middlewares/authMiddleware";
 const studentRepository = new StudentRepository()
-const studentUsecase = new StudentUseCase(studentRepository)
+const markLogRepository = new MarkLogRepository()
+const studentUsecase = new StudentUseCase(studentRepository, markLogRepository)
 const studentController = new StudentController(studentUsecase)
 const router = Router()
 

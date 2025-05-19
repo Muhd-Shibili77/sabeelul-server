@@ -2,6 +2,7 @@ import Program from "../../domain/entites/Program";
 import Student from "../../domain/entites/Student";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { IStudentRepository } from "../interface/IStudentRepository";
+import { IMarkLogRepository } from "../interface/IMarkLogRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
 
@@ -12,7 +13,7 @@ interface SubjectMark {
 }
 
 export class StudentUseCase {
-  constructor(private studentRepository: IStudentRepository) {}
+  constructor(private studentRepository: IStudentRepository,private markLogsRepository : IMarkLogRepository) {}
 
   async fetchStudents(query: object, page: number, limit: number) {
     const students = await this.studentRepository.fetchStudents(
@@ -268,6 +269,17 @@ export class StudentUseCase {
     );
     if (!student) {
       throw new Error("Adding mentor failed");
+    }
+    
+    const recentInput = await this.markLogsRepository.addMarkLog(
+      id,
+      academicYear,
+      "Mentor Score",
+      mark,
+      "Mentor"
+    );
+    if (!recentInput) {
+      throw new Error("Adding mentor log failed");
     }
     return student;
   }

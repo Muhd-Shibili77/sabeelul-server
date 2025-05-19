@@ -818,7 +818,7 @@ export class StudentRepository implements IStudentRepository {
       {
         $addFields: {
           studentPerformanceScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore",200],
           },
         },
       },

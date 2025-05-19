@@ -477,6 +477,7 @@ export class StudentUseCase {
       totalScore: totalMarks,
       cceScore: cceMarkTotal,
       creditScore: extraMarkTotal,
+      mentorMark:mentorMarkTotal,
       subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
       achievements: achievementDetails, // Fixed the typo in the property name
     };

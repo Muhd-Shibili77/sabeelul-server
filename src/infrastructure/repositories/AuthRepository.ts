@@ -14,12 +14,12 @@ export class AuthRepository implements IAuthRepository{
     }
 
     async findTeacher(login: string): Promise<Teacher | null> {
-        const teacher = await TeacherModel.findOne({ email: login ,isDeleted:false});
+        const teacher = await TeacherModel.findOne({ registerNo: login ,isDeleted:false});
         if(!teacher) return null;
         return new Teacher(teacher.toObject() as Teacher);          
     }
     async findStudent(login: string): Promise<Student | null> {
-        const student = await StudentModel.findOne({ email: login,isDeleted:false });
+        const student = await StudentModel.findOne({ admissionNo: login,isDeleted:false });
         if(!student) return null;
         return new Student(student.toObject() as Student);
     }

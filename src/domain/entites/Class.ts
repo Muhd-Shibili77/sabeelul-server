@@ -7,7 +7,9 @@ class Class{
     public marks!:{
         academicYear:string,
         item:string,
-        score:number
+        score:number,
+        discription:string,
+        date:Date
     }[];
 
     constructor(data:Partial<Class>){

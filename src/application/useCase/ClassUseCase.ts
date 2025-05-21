@@ -94,7 +94,7 @@ export class ClassUseCase {
     }
     await this.classRepository.deleteClass(id);
   }
-  async addScore(id: string, item: string, score: number): Promise<Class> {
+  async addScore(id: string, item: string, score: number,discription:string): Promise<Class> {
     const academicYear = getCurrentAcademicYear();
     const cls = await this.classRepository.findClassById(id);
     if (!cls) {
@@ -104,7 +104,8 @@ export class ClassUseCase {
       id,
       academicYear,
       item,
-      score
+      score,
+      discription
     );
     return updatedClass;
   }
@@ -112,6 +113,7 @@ export class ClassUseCase {
     id: string,
     markId: string,
     item: string,
+    discription: string,
     score: number
   ): Promise<Class> {
     const cls = await this.classRepository.findClassById(id);
@@ -122,7 +124,8 @@ export class ClassUseCase {
       id,
       markId,
       item,
-      score
+      score,
+      discription,
     );
     return updatedClass;
   }

@@ -97,9 +97,10 @@ export class ClassController {
   }
   async addScore(req: Request, res: Response) {
     try {
+      
       const id: string = req.params.id;
-      const { item, score } = req.body;
-      const updatedClass = await this.classUseCase.addScore(id, item, score);
+      const { item, score,discription } = req.body;
+      const updatedClass = await this.classUseCase.addScore(id, item, score,discription);
       res.status(StatusCode.OK).json({
         success: true,
         message: "Adding of score is successfull",
@@ -118,13 +119,15 @@ export class ClassController {
 
       // Access values like this:
       const item = updatedMark.item;
+      const discription = updatedMark.discription;
       const score = updatedMark.score;
       const id: string = req.params.id;
       const updatedClass = await this.classUseCase.editScore(
         id,
         markId,
         item,
-        score
+        discription,
+        score,
       );
       res.status(StatusCode.OK).json({
         success: true,

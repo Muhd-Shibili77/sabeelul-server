@@ -185,7 +185,8 @@ export class StudentUseCase {
   async addExtraScore(
     id: string,
     programName: string,
-    mark: number
+    mark: number,
+    discription: string
   ): Promise<Student> {
     const academicYear = getCurrentAcademicYear();
     if (!id) {
@@ -211,7 +212,8 @@ export class StudentUseCase {
       id,
       academicYear,
       programName,
-      mark
+      mark,
+      discription
     );
     if (!student) {
       throw new Error("score is not updated to student");

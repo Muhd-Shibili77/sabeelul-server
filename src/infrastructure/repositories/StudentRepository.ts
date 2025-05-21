@@ -96,9 +96,10 @@ export class StudentRepository implements IStudentRepository {
     id: string,
     academicYear: string,
     programName: string,
-    mark: number
+    mark: number,
+    discription: string
   ): Promise<Student> {
-    const updateData: any = { academicYear, mark };
+    const updateData: any = { academicYear, mark, discription };
     if (mongoose.Types.ObjectId.isValid(programName)) {
       updateData.programId = programName;
     } else {
@@ -140,7 +141,7 @@ export class StudentRepository implements IStudentRepository {
     if (existingMarkIndex !== -1) {
       student.mentorMarks[existingMarkIndex].mark = mark;
     } else {
-      student.mentorMarks.push({ academicYear, mark });
+      student.mentorMarks.push({ academicYear, mark, date: new Date() });
     }
 
     const updatedStudent = await student.save();
@@ -193,6 +194,7 @@ export class StudentRepository implements IStudentRepository {
           subjectName,
           phase,
           mark,
+          date: new Date(),
         });
       }
     } else {
@@ -205,6 +207,7 @@ export class StudentRepository implements IStudentRepository {
             subjectName,
             phase,
             mark,
+            date: new Date(),
           },
         ],
       });

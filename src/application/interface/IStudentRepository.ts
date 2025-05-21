@@ -8,7 +8,7 @@ export interface IStudentRepository{
     findStudentById(id: string): Promise<Student | null>;
     updateStudent(id: string, student: Student): Promise<Student>;
     findByAdNo(admissionNo:string):Promise<Student | null>
-    addExtraScore(id:string,academicYear:string,programName:string,mark:number):Promise<Student>
+    addExtraScore(id:string,academicYear:string,programName:string,mark:number,discription:string):Promise<Student>
     deleteExtraScore(id:string):Promise<null>
     editExtraScore(id:string,mark:number):Promise<void>
     addMentorScore(id:string,academicYear:string,mark:number):Promise<Student>

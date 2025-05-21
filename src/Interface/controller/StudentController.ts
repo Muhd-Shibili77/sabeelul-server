@@ -79,8 +79,8 @@ export class StudentController{
     async addExtraScore(req:Request,res:Response){
         try {
             const id: string = req.params.id;
-            const {programName,mark} = req.body
-            const student = await this.studentUsecase.addExtraScore(id,programName,mark)
+            const {programName,mark,discription} = req.body
+            const student = await this.studentUsecase.addExtraScore(id,programName,mark,discription)
             res.status(StatusCode.OK).json({ success: true,message:'add Extra mark to student is successfull', data: student });
    
         }catch (error: any) {

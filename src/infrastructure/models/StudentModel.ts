@@ -1,136 +1,161 @@
-import mongoose,{Schema,Document, Model} from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
 
-
-
-export interface IStudent extends Document{
-    admissionNo:string,
-    name:string,
-    phone:number,
-    address:string,
-    email:string,
-    password:string,
-    classId:string,
-    guardianName:string,
-    profileImage:string,
-    isDeleted?:boolean
-    extraMarks?: {
-        academicYear: string;
-        programId?: mongoose.Types.ObjectId;
-        customProgramName?: string;
-        mark: number;
-        date:Date
-    }[],
-    mentorMarks?:{
-        academicYear:string;
-        mark:number
-    }[],
-    cceMarks?:{
-        academicYear: string;
-        className:string,
-        subjects:{
-            subjectName:string,
-            phase:string,
-            mark:number
-        }[]  
-    }[]
+export interface IStudent extends Document {
+  admissionNo: string;
+  name: string;
+  phone: number;
+  address: string;
+  email: string;
+  password: string;
+  classId: string;
+  guardianName: string;
+  profileImage: string;
+  isDeleted?: boolean;
+  extraMarks?: {
+    academicYear: string;
+    programId?: mongoose.Types.ObjectId;
+    customProgramName?: string;
+    mark: number;
+    date: Date;
+    discription: string;
+  }[];
+  mentorMarks?: {
+    academicYear: string;
+    mark: number;
+    date: Date;
+  }[];
+  cceMarks?: {
+    academicYear: string;
+    className: string;
+    subjects: {
+      subjectName: string;
+      phase: string;
+      mark: number;
+      date: Date;
+    }[];
+  }[];
 }
 
-const studentSchema = new Schema({
-    admissionNo:{
-        type:String,
-        required:true,
-        unique: true
+const studentSchema = new Schema(
+  {
+    admissionNo: {
+      type: String,
+      required: true,
+      unique: true,
     },
-    name:{
-        type:String,
-        required:true
+    name: {
+      type: String,
+      required: true,
     },
-    phone:{
-        type:Number,
-        required:true
+    phone: {
+      type: Number,
+      required: true,
     },
-    address:{
-        type:String,
-        required:true
+    address: {
+      type: String,
+      required: true,
     },
-    email:{
-        type:String,
-        required:true
+    email: {
+      type: String,
+      required: true,
     },
-    password:{
-        type:String,
-        required:true
+    password: {
+      type: String,
+      required: true,
     },
-    classId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Class',
-        required:true
+    classId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+      required: true,
     },
-    guardianName:{
-        type:String,
-        required:true
+    guardianName: {
+      type: String,
+      required: true,
     },
-    profileImage:{
-        type:String,
-        required:true
+    profileImage: {
+      type: String,
+      required: true,
     },
-    isDeleted:{
-        type:Boolean,
-        default:false
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
-    extraMarks:[{
+    extraMarks: [
+      {
         academicYear: {
-            type: String,
+          type: String,
         },
-        programId:{
-            type:mongoose.Schema.Types.ObjectId,
-            ref:'Program',
-            default: null
+        programId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Program",
+          default: null,
         },
-        customProgramName:{
-            type:String,
-            default: null
+        customProgramName: {
+          type: String,
+          default: null,
         },
         mark: {
-            type: Number,
-            required: true
+          type: Number,
+          required: true,
         },
-        date:{
-            type:Date,
-            default:new Date()
-        }
-    }],
-   mentorMarks:[{
-        academicYear:{
-            type:String,
+        date: {
+          type: Date,
+          default: new Date(),
         },
-        mark:{
-            type:Number,
-        }  
-   }],
-   cceMarks:[{
+        discription: {
+          type: String,
+        },
+      },
+    ],
+    mentorMarks: [
+      {
         academicYear: {
-            type: String,
+          type: String,
+        },
+        mark: {
+          type: Number,
+        },
+        date: {
+          type: Date,
+          default: new Date(),
+        },
+      },
+    ],
+    cceMarks: [
+      {
+        academicYear: {
+          type: String,
         },
         className: {
-            type: String,
-            default: null
+          type: String,
+          default: null,
         },
-        subjects: [{
+        subjects: [
+          {
             subjectName: {
-                type: String,
+              type: String,
             },
             phase: {
-                type: String,
+              type: String,
             },
             mark: {
-                type: Number,
-            }
-        }]
-   }] 
-    
-},{ timestamps:true})
+              type: Number,
+            },
+            date: {
+              type: Date,
+              default: new Date(),
+            },
+          },
+        ],
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
-const StudentModel: Model<IStudent> = mongoose.model<IStudent>('Student',studentSchema)
+const StudentModel: Model<IStudent> = mongoose.model<IStudent>(
+  "Student",
+  studentSchema
+);
 
-export default StudentModel
+export default StudentModel;

@@ -16,10 +16,12 @@ class Student{
         customProgramName:string,
         mark:number,
         date:Date,
+        discription:string,
     }[]
     public mentorMarks?:{
         academicYear:string,
-        mark:number
+        mark:number,
+        date:Date
     }[]
     public cceMarks?:{
         academicYear: string;
@@ -27,7 +29,8 @@ class Student{
         subjects:{
             subjectName:string,
             phase:string,
-            mark:number
+            mark:number,
+            date:Date
         }[]
     }[]
 

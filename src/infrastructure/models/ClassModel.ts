@@ -9,6 +9,8 @@ export interface IClass extends Document {
     academicYear: string;
     item: string;
     score: number;
+    discription: string;
+    date:Date;
   }[];
 }
 
@@ -41,6 +43,13 @@ const classSchema = new Schema<IClass>(
         score: {
           type: Number,
         },
+        discription: {
+          type: String,
+        },
+        date:{
+          type:Date,
+          default:new Date()
+        }
       },
     ],
   },

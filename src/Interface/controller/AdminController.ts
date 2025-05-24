@@ -38,4 +38,48 @@ export class AdminController {
             res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
         }
     }
+    async getExtraMarkItem(req:Request,res:Response){
+        try {
+            const data = await this.adminUseCase.getExtraMarkItem()
+            res.status(StatusCode.OK).json({ success: true,message:'Fetching of extra mark item is successfull', data });
+
+        } catch (error: any) {
+            console.error(error);
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
+        }
+    }
+    async addExtraMarkItem(req:Request,res:Response){
+        try {
+            const { item,description } = req.body;
+            const data = await this.adminUseCase.addExtraMarkItem(item,description)
+            res.status(StatusCode.OK).json({ success: true,message:'Adding of extra mark item is successfull', data });
+
+        } catch (error: any) {
+            console.error(error);
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
+        }
+    }
+    async updateExtraMarkItem(req:Request,res:Response){
+        try {
+            const id = req.params.id
+            const { item,description } = req.body;
+            const data = await this.adminUseCase.updateExtraMarkItem(id,item,description)
+            res.status(StatusCode.OK).json({ success: true,message:'Updating of extra mark item is successfull', data });
+
+        } catch (error: any) {
+            console.error(error);
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
+        }
+    }
+    async deleteExtraMarkItem(req:Request,res:Response){
+        try {
+            const id = req.params.id
+            const data = await this.adminUseCase.deleteExtraMarkItem(id)
+            res.status(StatusCode.OK).json({ success: true,message:'Deleting of extra mark item is successfull', data });
+
+        } catch (error: any) {
+            console.error(error);
+            res.status(StatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: error.message });
+        }
+    }
 }

@@ -5,6 +5,7 @@ import { IStudentRepository } from "../interface/IStudentRepository";
 import { IMarkLogRepository } from "../interface/IMarkLogRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
+import ExtraMarkItem from "../../domain/entites/ExtraMarkItem";
 
 interface SubjectMark {
   subjectName: string;
@@ -369,7 +370,7 @@ export class StudentUseCase {
     if (latestExtra) {
       const name =
         latestExtra.programId && typeof latestExtra.programId === "object"
-          ? (latestExtra.programId as Program).name
+          ? (latestExtra.programId as ExtraMarkItem).item
           : latestExtra.customProgramName || null;
       const mark = latestExtra.mark || 0;
       const date = latestExtra.date || null;
@@ -475,7 +476,7 @@ export class StudentUseCase {
           let name: string | null = null;
 
           if (e.programId && typeof e.programId === "object") {
-            name = (e.programId as Program).name;
+            name = (e.programId as ExtraMarkItem).item;
           } else if (e.customProgramName) {
             name = e.customProgramName;
           }

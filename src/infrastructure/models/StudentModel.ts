@@ -94,7 +94,7 @@ const studentSchema = new Schema(
         },
         programId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Program",
+          ref: "ExtraMarkItem",
           default: null,
         },
         customProgramName: {

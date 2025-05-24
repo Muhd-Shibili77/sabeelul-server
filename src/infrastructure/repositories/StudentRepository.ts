@@ -97,9 +97,9 @@ export class StudentRepository implements IStudentRepository {
     academicYear: string,
     programName: string,
     mark: number,
-    discription: string
+    description: string
   ): Promise<Student> {
-    const updateData: any = { academicYear, mark, discription };
+    const updateData: any = { academicYear, mark, description };
     if (mongoose.Types.ObjectId.isValid(programName)) {
       updateData.programId = programName;
     } else {
@@ -821,7 +821,12 @@ export class StudentRepository implements IStudentRepository {
       {
         $addFields: {
           studentPerformanceScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore",200],
+            $add: [
+              "$totalExtraMark",
+              "$totalMentorMark",
+              "$totalCceScore",
+              200,
+            ],
           },
         },
       },
@@ -891,5 +896,75 @@ export class StudentRepository implements IStudentRepository {
 
     const result = await StudentModel.aggregate(pipeline);
     return result || [];
+  }
+
+  async addPenaltyScore(
+    id: string,
+    academicYear: string,
+    reason: string,
+    penaltyScore: number,
+    description: string
+  ): Promise<Student> {
+    const student = await StudentModel.findById(id);
+    if (!student) {
+      throw new Error("student not found");
+    }
+    const updatedStudent = await StudentModel.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          penaltyMarks: { academicYear, reason, penaltyScore, description },
+        },
+      },
+      { new: true }
+    );
+    if (!updatedStudent) {
+      throw new Error("Class add score failed");
+    }
+    return new Student(updatedStudent.toObject() as Student);
+  }
+  async editPenaltyScore(
+    id: string,
+    markId: string,
+    reason: string,
+    penaltyScore: number,
+    description: string
+  ): Promise<Student> {
+    const student = await StudentModel.findById(id);
+    if (!student) {
+      throw new Error("student not found");
+    }
+    const markExists = student.penaltyMarks?.some(
+      (m: any) => m._id.toString() === markId
+    );
+    if (!markExists) {
+      throw new Error("Penalty Mark not found for this student");
+    }
+    const updatedStudentDoc = await StudentModel.findOneAndUpdate(
+      { _id: id, "penaltyMarks._id": markId },
+      {
+        $set: {
+          "penaltyMarks.$.penaltyScore": penaltyScore,
+          "penaltyMarks.$.reason": reason,
+          "penaltyMarks.$.description": description,
+        },
+      },
+      { new: true }
+    );
+    if (!updatedStudentDoc) {
+      throw new Error("Failed to update the score");
+    }
+
+    return new Student(updatedStudentDoc.toObject() as Student);
+  }
+  async deletePenaltyScore(id: string, markId: string): Promise<void> {
+    const result = await StudentModel.findByIdAndUpdate(
+      id,
+      { $pull: { penaltyMarks: { _id: markId } } },
+      { new: true }
+    );
+    if (!result) {
+      throw new Error("Failed to delete penalty score from student");
+    }
   }
 }

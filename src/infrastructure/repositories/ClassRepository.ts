@@ -89,7 +89,7 @@ export class ClassRepository implements IClassRepository {
     markId: string,
     item: string,
     score: number,
-    discription: string,
+    discription: string
   ): Promise<Class> {
     // Step 1: Find the class
     const cls = await ClassModel.findById(id);
@@ -106,7 +106,13 @@ export class ClassRepository implements IClassRepository {
     // Step 3: Update the specific mark
     const updatedClassDoc = await ClassModel.findOneAndUpdate(
       { _id: id, "marks._id": markId },
-      { $set: { "marks.$.score": score, "marks.$.item": item,"marks.$.discription":discription } },
+      {
+        $set: {
+          "marks.$.score": score,
+          "marks.$.item": item,
+          "marks.$.discription": discription,
+        },
+      },
       { new: true }
     );
 
@@ -196,5 +202,74 @@ export class ClassRepository implements IClassRepository {
   async findStudentInClass(id: string): Promise<Student[]> {
     const students = await StudentModel.find({ classId: id, isDeleted: false });
     return students.map((student) => student.toObject() as Student);
+  }
+
+  async addPenaltyScore(
+    id: string,
+    academicYear: string,
+    reason: string,
+    penaltyScore: number,
+    description: string
+  ): Promise<Class> {
+    const cls = await ClassModel.findById(id);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+    const updatedClass = await ClassModel.findByIdAndUpdate(
+      id,
+      { $push: { penaltyMarks: { academicYear, reason, penaltyScore, description } } },
+      { new: true }
+    );
+    if (!updatedClass) {
+      throw new Error("Class add score failed");
+    }
+    return new Class(updatedClass.toObject() as Class);
+  }
+
+  async editPenaltyScore(id: string, markId: string, reason: string, penaltyScore: number, description: string): Promise<Class> {
+    const cls = await ClassModel.findById(id);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+
+    const markExists = cls.penaltyMarks?.some((m: any) => m._id.toString() === markId);
+    if (!markExists) {
+      throw new Error("Penalty Mark not found in class");
+    }
+
+     const updatedClassDoc = await ClassModel.findOneAndUpdate(
+      { _id: id, "penaltyMarks._id": markId },
+      {
+        $set: {
+          "penaltyMarks.$.penaltyScore": penaltyScore,
+          "penaltyMarks.$.reason": reason,
+          "penaltyMarks.$.description": description,
+        },
+      },
+      { new: true }
+    );
+     if (!updatedClassDoc) {
+      throw new Error("Failed to update the score");
+    }
+
+    // Step 4: Return updated class as Class instance
+    return new Class(updatedClassDoc.toObject() as Class);
+  }
+
+  async deletePenaltyScore(classId: string, markId: string): Promise<void> {
+    const cls = await ClassModel.findById(classId);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+
+    const updatedClass = await ClassModel.findByIdAndUpdate(
+      classId,
+      { $pull: { penaltyMarks: { _id: markId } } },
+      { new: true }
+    );
+
+    if (!updatedClass) {
+      throw new Error("Failed to delete score from class");
+    }
   }
 }

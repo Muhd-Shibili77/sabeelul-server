@@ -39,6 +39,17 @@ router.route('/score/:id')
     await classController.deleteScore(req, res)
 })
 
+router.route('/penalty/:id')
+.post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+    await classController.addPenaltyScore(req, res)
+})
+.put(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+    await classController.editPenaltyScore(req, res)
+})
+.delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+    await classController.deletePenaltyScore(req, res)
+})
+
 router.route('/subject/:id')
 .post(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.addSubject(req, res)

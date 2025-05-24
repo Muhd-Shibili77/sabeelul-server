@@ -39,6 +39,16 @@ router.route('/score/:id')
 .delete(authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
     await studentController.deleteStudentExtraScore(req,res)
 })
+router.route('/penalty/:id')
+.post(authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
+    await studentController.addPenaltyScore(req,res)
+})
+.put(authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
+    await studentController.editPenaltyScore(req,res)
+})
+.delete(authenticateJWT(['Admin','Teacher']),async(req:Request,res:Response)=>{
+    await studentController.deletePenaltyScore(req,res)
+})
 
 router.route('/mentor/:id')
 .post(authenticateJWT(['Admin','Teacher']),async (req:Request,res:Response)=>{

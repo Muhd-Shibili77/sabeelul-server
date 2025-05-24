@@ -17,7 +17,7 @@ export interface IStudent extends Document {
     customProgramName?: string;
     mark: number;
     date: Date;
-    discription: string;
+    description: string;
   }[];
   mentorMarks?: {
     academicYear: string;
@@ -33,6 +33,13 @@ export interface IStudent extends Document {
       mark: number;
       date: Date;
     }[];
+  }[];
+  penaltyMarks?: {
+    academicYear: string;
+    reason: string;
+    penaltyScore: number;
+    description: string;
+    date: Date;
   }[];
 }
 
@@ -100,9 +107,9 @@ const studentSchema = new Schema(
         },
         date: {
           type: Date,
-          default: new Date(),
+          default: () => new Date(),
         },
-        discription: {
+        description: {
           type: String,
         },
       },
@@ -117,7 +124,7 @@ const studentSchema = new Schema(
         },
         date: {
           type: Date,
-          default: new Date(),
+          default: () => new Date(),
         },
       },
     ],
@@ -143,10 +150,33 @@ const studentSchema = new Schema(
             },
             date: {
               type: Date,
-              default: new Date(),
+              default: () => new Date(),
             },
           },
         ],
+      },
+    ],
+    penaltyMarks: [
+      {
+        academicYear: {
+          type: String,
+          required: true,
+        },
+        reason: {
+          type: String,
+          required: true,
+        },
+        penaltyScore: {
+          type: Number,
+          required: true,
+        },
+        description: {
+          type: String,
+        },
+        date: {
+          type: Date,
+          default: () => new Date(),
+        },
       },
     ],
   },

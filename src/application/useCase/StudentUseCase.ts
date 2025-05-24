@@ -186,7 +186,7 @@ export class StudentUseCase {
     id: string,
     programName: string,
     mark: number,
-    discription: string
+    description: string
   ): Promise<Student> {
     const academicYear = getCurrentAcademicYear();
     if (!id) {
@@ -213,7 +213,7 @@ export class StudentUseCase {
       academicYear,
       programName,
       mark,
-      discription
+      description
     );
     if (!student) {
       throw new Error("score is not updated to student");
@@ -506,5 +506,30 @@ export class StudentUseCase {
     const students = await this.studentRepository.findByClass(classId);
 
     return students;
+  }
+  async addPenaltyScore(id:string,reason:string,penaltyScore:number,description:string):Promise<Student>{
+    const academicYear = getCurrentAcademicYear();
+    const student = await this.studentRepository.findStudentById(id)
+    if (!student) {
+      throw new Error("student not found");
+    }
+    const updateClass = await this.studentRepository.addPenaltyScore(id,academicYear,reason,penaltyScore,description)
+    return updateClass
+  }
+  async editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Student>{
+    const student = await this.studentRepository.findStudentById(id)
+    if (!student) {
+      throw new Error("student not found");
+    }
+    const updateClass = await this.studentRepository.editPenaltyScore(id,markId,reason,penaltyScore,description)
+    return updateClass
+  }
+  async deletePenaltyScore(id: string, markId: string):Promise<void>{
+    const student = await this.studentRepository.findStudentById(id)
+    if (!student) {
+      throw new Error("student not found");
+    }
+    const updatedClass = await this.studentRepository.deletePenaltyScore(id,markId)
+    return updatedClass
   }
 }

@@ -209,4 +209,68 @@ export class ClassController {
         .json({ success: false, message: error.message });
     }
   }
+
+   async addPenaltyScore(req: Request, res: Response) {
+    try {
+      
+      const id: string = req.params.id;
+      const { reason, penaltyScore,description } = req.body;
+      const updatedClass = await this.classUseCase.addPenaltyScore(id, reason, penaltyScore,description);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Adding of penalty score is successfull",
+        data: updatedClass,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+  async editPenaltyScore(req: Request, res: Response) {
+    try {
+      const { updatedMark, markId } = req.body;
+
+      // Access values like this:
+      const reason = updatedMark.reason;
+      const description = updatedMark.description;
+      const penaltyScore = updatedMark.penaltyScore;
+      const id: string = req.params.id;
+      const updatedClass = await this.classUseCase.editPenaltyScore(
+        id,
+        markId,
+        reason,
+        penaltyScore,
+        description,
+      );
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Editing of penalty score is successfull",
+        data: updatedClass,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+  async deletePenaltyScore(req: Request, res: Response) {
+    try {
+      const classId = req.params.id;
+      const { markId } = req.body;
+      const updatedClass = await this.classUseCase.deletePenaltyScore(classId, markId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Deleting of penalty score is successfull",
+        data: updatedClass,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
 }

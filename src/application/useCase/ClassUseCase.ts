@@ -94,7 +94,7 @@ export class ClassUseCase {
     }
     await this.classRepository.deleteClass(id);
   }
-  async addScore(id: string, item: string, score: number,discription:string): Promise<Class> {
+  async addScore(id: string, item: string, score: number,description:string): Promise<Class> {
     const academicYear = getCurrentAcademicYear();
     const cls = await this.classRepository.findClassById(id);
     if (!cls) {
@@ -105,7 +105,7 @@ export class ClassUseCase {
       academicYear,
       item,
       score,
-      discription
+      description
     );
     return updatedClass;
   }
@@ -113,7 +113,7 @@ export class ClassUseCase {
     id: string,
     markId: string,
     item: string,
-    discription: string,
+    description: string,
     score: number
   ): Promise<Class> {
     const cls = await this.classRepository.findClassById(id);
@@ -125,7 +125,7 @@ export class ClassUseCase {
       markId,
       item,
       score,
-      discription,
+      description,
     );
     return updatedClass;
   }
@@ -156,4 +156,30 @@ export class ClassUseCase {
     const cls = await this.classRepository.deleteSubject(id, subject);
     return cls;
   }
+  async addPenaltyScore(id:string,reason:string,penaltyScore:number,description:string):Promise<Class>{
+    const academicYear = getCurrentAcademicYear();
+    const cls = await this.classRepository.findClassById(id);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+    const updateClass = await this.classRepository.addPenaltyScore(id,academicYear,reason,penaltyScore,description)
+    return updateClass
+  }
+  async editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Class>{
+    const cls = await this.classRepository.findClassById(id);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+    const updateClass = await this.classRepository.editPenaltyScore(id,markId,reason,penaltyScore,description)
+    return updateClass
+  }
+  async deletePenaltyScore(classId: string, markId: string):Promise<void>{
+    const cls = await this.classRepository.findClassById(classId);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+    const updatedClass = await this.classRepository.deletePenaltyScore(classId,markId)
+    return updatedClass
+  }
+  
 }

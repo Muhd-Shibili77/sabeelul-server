@@ -247,7 +247,7 @@ export class StudentUseCase {
     return student;
   }
 
-  async addMentorScore(id: string, mark: number): Promise<Student> {
+  async addMentorScore(id: string, mark: number,semester:string): Promise<Student> {
     const academicYear = getCurrentAcademicYear();
     if (!id) {
       throw new Error("id is required");
@@ -261,6 +261,9 @@ export class StudentUseCase {
     if (mark <= 0) {
       throw new Error("mark is must be greater than zero");
     }
+    if (!semester) {
+      throw new Error("semester is required");
+    }
     const studentExist = await this.studentRepository.findStudentById(id);
     if (!studentExist) {
       throw new Error("student not exist");
@@ -268,7 +271,8 @@ export class StudentUseCase {
     const student = await this.studentRepository.addMentorScore(
       id,
       academicYear,
-      mark
+      mark,
+      semester
     );
     if (!student) {
       throw new Error("Adding mentor failed");
@@ -290,6 +294,7 @@ export class StudentUseCase {
   async addCceScore(
     id: string,
     classId: string,
+    semester: string,
     phase: string,
     subjectName: string,
     mark: number
@@ -316,6 +321,9 @@ export class StudentUseCase {
     if (mark <= 0) {
       throw new Error("mark is must be greater than zero");
     }
+    if (!semester) {
+      throw new Error("semester is required");
+    }
     const studentExist = await this.studentRepository.findStudentById(id);
     if (!studentExist) {
       throw new Error("student not exist");
@@ -324,6 +332,7 @@ export class StudentUseCase {
     const updatedStudent = await this.studentRepository.addCceScore(
       id,
       academicYear,
+      semester,
       classId,
       phase,
       subjectName,

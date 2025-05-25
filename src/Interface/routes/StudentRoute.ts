@@ -55,7 +55,7 @@ router.route('/mentor/:id')
     await studentController.addMentorScore(req,res)
 })
 router.route('/cce/:id')
-.post(authenticateJWT(['Admin','Teacher']),async (req:Request,res:Response)=>{
+.post(async (req:Request,res:Response)=>{
     await studentController.addCceScore(req,res)
 })
 router.get('/profile/:id',authenticateJWT(['Admin','Teacher','Student']),async(req:Request,res:Response)=>{

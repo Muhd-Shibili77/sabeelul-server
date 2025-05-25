@@ -124,7 +124,8 @@ export class StudentRepository implements IStudentRepository {
   async addMentorScore(
     id: string,
     academicYear: string,
-    mark: number
+    mark: number,
+    semester: string
   ): Promise<Student> {
     const student = await StudentModel.findById(id);
     if (!student) {
@@ -135,13 +136,20 @@ export class StudentRepository implements IStudentRepository {
       student.mentorMarks = [];
     }
     const existingMarkIndex = student.mentorMarks.findIndex(
-      (entry) => entry.academicYear === academicYear
+      (entry) =>
+        entry.academicYear === academicYear && entry.semester === semester
     );
 
     if (existingMarkIndex !== -1) {
       student.mentorMarks[existingMarkIndex].mark = mark;
+      student.mentorMarks[existingMarkIndex].date = new Date();
     } else {
-      student.mentorMarks.push({ academicYear, mark, date: new Date() });
+      student.mentorMarks.push({
+        academicYear,
+        semester,
+        mark,
+        date: new Date(),
+      });
     }
 
     const updatedStudent = await student.save();
@@ -154,6 +162,7 @@ export class StudentRepository implements IStudentRepository {
   async addCceScore(
     id: string,
     academicYear: string,
+    semester: string,
     classId: string,
     subjectName: string,
     phase: string,
@@ -176,7 +185,10 @@ export class StudentRepository implements IStudentRepository {
 
     // Find academic record
     const academicRecord = student.cceMarks.find(
-      (record) => record.academicYear === academicYear
+      (record) =>
+        record.academicYear === academicYear &&
+        record.semester === semester &&
+        record.className === className
     );
 
     if (academicRecord) {
@@ -201,6 +213,7 @@ export class StudentRepository implements IStudentRepository {
       // If academicYear record doesn't exist, create it
       student.cceMarks.push({
         academicYear,
+        semester,
         className,
         subjects: [
           {
@@ -232,6 +245,7 @@ export class StudentRepository implements IStudentRepository {
 
   async bestPerfomerClass(): Promise<Student[]> {
     const academicYear = getCurrentAcademicYear();
+
     const bestStudentsPipeline: PipelineStage[] = [
       {
         $match: {
@@ -295,12 +309,32 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPenaltyMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$penaltyMarks",
+                    as: "pm",
+                    cond: { $eq: ["$$pm.academicYear", academicYear] },
+                  },
+                },
+                as: "pmf",
+                in: "$$pmf.penaltyScore",
+              },
+            },
+          },
         },
       },
       {
         $addFields: {
           performanceScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+            $subtract: [
+              {
+                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+              },
+              "$totalPenaltyMark",
+            ],
           },
         },
       },
@@ -318,7 +352,7 @@ export class StudentRepository implements IStudentRepository {
       },
       {
         $lookup: {
-          from: "classes", // replace with your actual collection name for classes
+          from: "classes", // replace with actual class collection name
           localField: "classId",
           foreignField: "_id",
           as: "classId",
@@ -331,7 +365,7 @@ export class StudentRepository implements IStudentRepository {
         $project: {
           name: 1,
           performanceScore: 1,
-          classId: 1, // now this will contain the populated class object
+          classId: 1,
         },
       },
     ];
@@ -344,11 +378,7 @@ export class StudentRepository implements IStudentRepository {
     const academicYear = getCurrentAcademicYear();
 
     const result = await StudentModel.aggregate([
-      {
-        $match: {
-          isDeleted: false,
-        },
-      },
+      { $match: { isDeleted: false } },
       {
         $lookup: {
           from: "classes",
@@ -357,36 +387,18 @@ export class StudentRepository implements IStudentRepository {
           as: "classInfo",
         },
       },
-      {
-        $unwind: {
-          path: "$classInfo",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$extraMarks",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$mentorMarks",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $unwind: {
-          path: "$cceMarks",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$extraMarks", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$mentorMarks", preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: "$cceMarks", preserveNullAndEmptyArrays: true } },
       {
         $unwind: {
           path: "$cceMarks.subjects",
           preserveNullAndEmptyArrays: true,
         },
       },
+      { $unwind: { path: "$penaltyMarks", preserveNullAndEmptyArrays: true } },
+
       {
         $addFields: {
           extraMark: {
@@ -412,8 +424,16 @@ export class StudentRepository implements IStudentRepository {
               0,
             ],
           },
+          penaltyScore: {
+            $cond: [
+              { $eq: ["$penaltyMarks.academicYear", academicYear] },
+              { $ifNull: ["$penaltyMarks.penaltyScore", 0] },
+              0,
+            ],
+          },
         },
       },
+
       {
         $group: {
           _id: {
@@ -425,16 +445,24 @@ export class StudentRepository implements IStudentRepository {
           totalExtraMark: { $sum: "$extraMark" },
           totalMentorMark: { $sum: "$mentorMark" },
           totalCceMark: { $sum: "$cceMark" },
+          totalPenalty: { $sum: "$penaltyScore" },
           classInfo: { $first: "$classInfo" },
         },
       },
+
       {
         $addFields: {
           studentTotalScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceMark"],
+            $subtract: [
+              {
+                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceMark"],
+              },
+              "$totalPenalty",
+            ],
           },
         },
       },
+
       {
         $group: {
           _id: "$_id.classId",
@@ -444,6 +472,7 @@ export class StudentRepository implements IStudentRepository {
           classInfo: { $first: "$classInfo" },
         },
       },
+
       {
         $addFields: {
           classScore: {
@@ -468,18 +497,45 @@ export class StudentRepository implements IStudentRepository {
           },
         },
       },
+
       {
         $addFields: {
-          totalScore: {
-            $add: ["$totalStudentScore", "$classScore"],
+          classPenaltyScore: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.penaltyMarks",
+                        as: "p",
+                        cond: { $eq: ["$$p.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredPenalty",
+                    in: "$$filteredPenalty.penaltyScore",
+                  },
+                },
+              },
+              0,
+            ],
           },
         },
       },
+
       {
-        $sort: {
-          totalScore: -1,
+        $addFields: {
+          totalScore: {
+            $subtract: [
+              { $add: ["$totalStudentScore", "$classScore"] },
+              "$classPenaltyScore",
+            ],
+          },
         },
       },
+
+      { $sort: { totalScore: -1 } },
+
       {
         $project: {
           _id: 0,
@@ -488,20 +544,13 @@ export class StudentRepository implements IStudentRepository {
           classLogo: 1,
           totalStudentScore: 1,
           classScore: 1,
+          classPenaltyScore: 1,
           totalScore: 1,
         },
       },
     ]);
 
     return result;
-  }
-
-  async findByClass(classId: string): Promise<Student[]> {
-    const students = await StudentModel.find({
-      classId,
-      isDeleted: false,
-    }).populate("classId");
-    return students.map((student) => student.toObject() as Student);
   }
 
   async bestPerformerOverall(): Promise<Student[]> {
@@ -570,12 +619,32 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPenaltyMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$penaltyMarks",
+                    as: "pen",
+                    cond: { $eq: ["$$pen.academicYear", academicYear] },
+                  },
+                },
+                as: "penf",
+                in: "$$penf.mark",
+              },
+            },
+          },
         },
       },
       {
         $addFields: {
           performanceScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+            $subtract: [
+              {
+                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+              },
+              { $ifNull: ["$totalPenaltyMark", 0] },
+            ],
           },
         },
       },
@@ -617,7 +686,7 @@ export class StudentRepository implements IStudentRepository {
       {
         $match: {
           isDeleted: false,
-          classId: new Types.ObjectId(classId), // Ensure it's matched as an ObjectId
+          classId: new Types.ObjectId(classId),
         },
       },
       {
@@ -677,12 +746,32 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPenaltyMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$penaltyMarks",
+                    as: "pen",
+                    cond: { $eq: ["$$pen.academicYear", academicYear] },
+                  },
+                },
+                as: "penf",
+                in: "$$penf.mark",
+              },
+            },
+          },
         },
       },
       {
         $addFields: {
           performanceScore: {
-            $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+            $subtract: [
+              {
+                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+              },
+              { $ifNull: ["$totalPenaltyMark", 0] },
+            ],
           },
         },
       },
@@ -717,31 +806,21 @@ export class StudentRepository implements IStudentRepository {
     return result || [];
   }
 
-  async isExist(data: string): Promise<boolean> {
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex
-    const query = isEmail ? { email: data } : { phone: data };
-    const student = await StudentModel.findOne(query).lean();
-    const teacher = await TeacherModel.findOne(query).lean();
-
-    return !!student || !!teacher;
-  }
   async getTopClass(): Promise<
     {
       className: string;
       classLogo: string;
       totalStudentScore: number;
       classScore: number;
+      classPenaltyScore: number;
       totalScore: number;
     }[]
   > {
     const academicYear = getCurrentAcademicYear();
 
     const pipeline: PipelineStage[] = [
-      // Match non-deleted students
-      {
-        $match: { isDeleted: false },
-      },
-      // Lookup class information
+      { $match: { isDeleted: false } },
+
       {
         $lookup: {
           from: "classes",
@@ -750,14 +829,14 @@ export class StudentRepository implements IStudentRepository {
           as: "classInfo",
         },
       },
-      // Unwind class info
+
       {
         $unwind: {
           path: "$classInfo",
           preserveNullAndEmptyArrays: true,
         },
       },
-      // Calculate student scores
+
       {
         $addFields: {
           totalExtraMark: {
@@ -815,22 +894,42 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPenaltyMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$penaltyMarks",
+                    as: "pen",
+                    cond: { $eq: ["$$pen.academicYear", academicYear] },
+                  },
+                },
+                as: "penf",
+                in: "$$penf.mark",
+              },
+            },
+          },
         },
       },
-      // Calculate total performance score for each student
+
       {
         $addFields: {
           studentPerformanceScore: {
-            $add: [
-              "$totalExtraMark",
-              "$totalMentorMark",
-              "$totalCceScore",
-              200,
+            $subtract: [
+              {
+                $add: [
+                  "$totalExtraMark",
+                  "$totalMentorMark",
+                  "$totalCceScore",
+                  200, // Optional bonus
+                ],
+              },
+              { $ifNull: ["$totalPenaltyMark", 0] },
             ],
           },
         },
       },
-      // Group by class to get total student scores
+
       {
         $group: {
           _id: "$classId",
@@ -840,7 +939,7 @@ export class StudentRepository implements IStudentRepository {
           classInfo: { $first: "$classInfo" },
         },
       },
-      // Calculate class scores
+
       {
         $addFields: {
           classScore: {
@@ -863,17 +962,40 @@ export class StudentRepository implements IStudentRepository {
               0,
             ],
           },
-        },
-      },
-      // Calculate total score (students + class)
-      {
-        $addFields: {
-          totalScore: {
-            $add: ["$totalStudentScore", "$classScore"],
+          classPenaltyScore: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.penaltyMarks",
+                        as: "p",
+                        cond: { $eq: ["$$p.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredPenalty",
+                    in: "$$filteredPenalty.penaltyScore",
+                  },
+                },
+              },
+              0,
+            ],
           },
         },
       },
-      // Project required fields
+
+      {
+        $addFields: {
+          totalScore: {
+            $subtract: [
+              { $add: ["$totalStudentScore", "$classScore"] },
+              "$classPenaltyScore",
+            ],
+          },
+        },
+      },
+
       {
         $project: {
           _id: 0,
@@ -881,21 +1003,35 @@ export class StudentRepository implements IStudentRepository {
           classLogo: 1,
           totalStudentScore: 1,
           classScore: 1,
+          classPenaltyScore: 1,
           totalScore: 1,
         },
       },
-      // Sort by total score in descending order
-      {
-        $sort: { totalScore: -1 },
-      },
-      // Limit to top 10
-      {
-        $limit: 10,
-      },
+
+      { $sort: { totalScore: -1 } },
+
+      { $limit: 10 },
     ];
 
     const result = await StudentModel.aggregate(pipeline);
     return result || [];
+  }
+
+  async findByClass(classId: string): Promise<Student[]> {
+    const students = await StudentModel.find({
+      classId,
+      isDeleted: false,
+    }).populate("classId");
+    return students.map((student) => student.toObject() as Student);
+  }
+
+  async isExist(data: string): Promise<boolean> {
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex
+    const query = isEmail ? { email: data } : { phone: data };
+    const student = await StudentModel.findOne(query).lean();
+    const teacher = await TeacherModel.findOne(query).lean();
+
+    return !!student || !!teacher;
   }
 
   async addPenaltyScore(

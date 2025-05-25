@@ -14,8 +14,8 @@ export interface IStudentRepository{
     addPenaltyScore(id:string,academicYear:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
     editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
     deletePenaltyScore(classId:string,markId:string):Promise<void>;
-    addMentorScore(id:string,academicYear:string,mark:number):Promise<Student>
-    addCceScore(id:string,academicYear:string,classId:string,subjectName:string,phase:string,mark:number):Promise<Student>
+    addMentorScore(id:string,academicYear:string,mark:number,semester:string):Promise<Student>
+    addCceScore(id:string,academicYear:string,semester:string,classId:string,subjectName:string,phase:string,mark:number):Promise<Student>
     fetchProfile(id:string):Promise<Student>
     countStudent():Promise<number>;
     bestPerfomerClass():Promise<Student[]>

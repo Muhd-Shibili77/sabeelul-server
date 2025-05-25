@@ -217,8 +217,8 @@ export class StudentController {
   async addMentorScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      const { mark } = req.body;
-      const student = await this.studentUsecase.addMentorScore(id, mark);
+      const { mark,semester } = req.body;
+      const student = await this.studentUsecase.addMentorScore(id, mark,semester);
       res
         .status(StatusCode.OK)
         .json({
@@ -236,11 +236,12 @@ export class StudentController {
   async addCceScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      const { classId, subjectName, phase, mark } = req.body;
+      const { classId,semester, subjectName, phase, mark } = req.body;
 
       const student = await this.studentUsecase.addCceScore(
         id,
         classId,
+        semester,
         subjectName,
         phase,
         mark
@@ -387,10 +388,10 @@ export class StudentController {
   }
   async deletePenaltyScore(req: Request, res: Response) {
     try {
-      const classId = req.params.id;
+      const id = req.params.id;
       const { markId } = req.body;
       const updatedStudent = await this.studentUsecase.deletePenaltyScore(
-        classId,
+        id,
         markId
       );
       res.status(StatusCode.OK).json({

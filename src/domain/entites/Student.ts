@@ -19,12 +19,14 @@ class Student {
     discription: string;
   }[];
   public mentorMarks?: {
-    academicYear: string;
+   academicYear: string;
+    semester: string;
     mark: number;
     date: Date;
   }[];
   public cceMarks?: {
     academicYear: string;
+    semester: string;
     className: string;
     subjects: {
       subjectName: string;

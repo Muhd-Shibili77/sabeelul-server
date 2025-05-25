@@ -9,6 +9,7 @@ import ExtraMarkItem from "../../domain/entites/ExtraMarkItem";
 
 interface SubjectMark {
   subjectName: string;
+  semester: string;
   phase: string;
   mark: number;
 }
@@ -414,8 +415,12 @@ export class StudentUseCase {
         .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
     );
 
+    const penaltyMarkTotal = student.penaltyMarks
+      ?.filter((p) => p.academicYear === academicYear)
+      .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
+
     const totalMarks = Math.round(
-      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200
+      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200 - penaltyMarkTotal
     );
 
     const details = {
@@ -454,6 +459,7 @@ export class StudentUseCase {
               // Store individual subject marks
               subjectWiseMarks.push({
                 subjectName: subject.subjectName,
+                semester: cce.semester,
                 phase: subject.phase,
                 mark: subject.mark,
               });
@@ -472,9 +478,12 @@ export class StudentUseCase {
         ?.filter((e) => e.academicYear === academicYear)
         .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
     );
+      const penaltyMarkTotal = student.penaltyMarks
+      ?.filter((p) => p.academicYear === academicYear)
+      .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
 
     const totalMarks = Math.round(
-      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200
+      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200 - penaltyMarkTotal
     );
 
     // Filter and map all extraMarks in this academic year
@@ -502,6 +511,7 @@ export class StudentUseCase {
       cceScore: cceMarkTotal,
       creditScore: extraMarkTotal,
       mentorMark:mentorMarkTotal,
+      penaltyScore: penaltyMarkTotal,
       subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
       achievements: achievementDetails, // Fixed the typo in the property name
     };

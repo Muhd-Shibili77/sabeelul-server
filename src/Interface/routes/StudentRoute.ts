@@ -61,7 +61,7 @@ router.route('/cce/:id')
 router.get('/profile/:id',authenticateJWT(['Admin','Teacher','Student']),async(req:Request,res:Response)=>{
     await studentController.fetchProfile(req,res)
 })
-router.get('/dashboard/:id',authenticateJWT(['Admin','Teacher','Student']),async(req:Request,res:Response)=>{
+router.get('/dashboard/:id',async(req:Request,res:Response)=>{
     await studentController.dashboard(req,res)
 })
 router.get('/performance/:id',authenticateJWT(['Student']),async(req:Request,res:Response)=>{

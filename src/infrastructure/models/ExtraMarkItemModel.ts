@@ -10,7 +10,7 @@ const ExtraMarkItemSchema: Schema = new Schema({
   item: { type: String, required: true },
   description: { type: String, required: true },
   isDeleted: { type: Boolean, default: false },
-});
+},{timestamps:true});
 
 const ExtraMarkItemModel: Model<IExtraMarkItem> = mongoose.model<IExtraMarkItem>("ExtraMarkItem", ExtraMarkItemSchema);
 export default ExtraMarkItemModel;

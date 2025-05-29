@@ -41,7 +41,7 @@ export class AdminController {
     async getExtraMarkItem(req:Request,res:Response){
         try {
             const data = await this.adminUseCase.getExtraMarkItem()
-            res.status(StatusCode.OK).json({ success: true,message:'Fetching of extra mark item is successfull', data });
+            res.status(StatusCode.OK).json({ success: true,message:'Fetching of extra mark item is successfull', items:data });
 
         } catch (error: any) {
             console.error(error);

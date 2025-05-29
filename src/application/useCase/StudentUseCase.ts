@@ -238,31 +238,27 @@ export class StudentUseCase {
     return student;
   }
   async deleteExtraScore(id: string) {
-    const academicYear = getCurrentAcademicYear();
     if (!id) {
       throw new Error("id is required");
     }
-    const studentExist = await this.studentRepository.findStudentById(id);
-    if (!studentExist) {
-      throw new Error("student not exist");
-    }
+    
     const student = await this.studentRepository.deleteExtraScore(id);
      
 
     return student;
   }
-  async editExtraScore(id: string, mark: number) {
+  async editExtraScore(id: string, mark: number,description:string) {
     if (!id) {
       throw new Error("id is required");
     }
     if (!mark) {
       throw new Error("mark is required");
     }
-    const studentExist = await this.studentRepository.findStudentById(id);
-    if (!studentExist) {
-      throw new Error("student not exist");
+    if (!description) {
+      throw new Error("description is required");
     }
-    const student = await this.studentRepository.editExtraScore(id, mark);
+    
+    const student = await this.studentRepository.editExtraScore(id, mark,description);
     return student;
   }
 

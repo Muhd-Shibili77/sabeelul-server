@@ -116,7 +116,7 @@ export class ClassController {
   async editScore(req: Request, res: Response) {
     try {
       const { updatedMark, markId } = req.body;
-
+      console.log(updatedMark)
       // Access values like this:
       const item = updatedMark.item;
       const discription = updatedMark.discription;

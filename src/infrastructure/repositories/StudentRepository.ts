@@ -81,10 +81,10 @@ export class StudentRepository implements IStudentRepository {
     return null;
   }
 
-  async editExtraScore(id: string, mark: number): Promise<void> {
+  async editExtraScore(id: string, mark: number,description:string): Promise<void> {
     const result = await StudentModel.updateOne(
       { "extraMarks._id": id },
-      { $set: { "extraMarks.$.mark": mark } }
+      { $set: { "extraMarks.$.mark": mark,"extraMarks.$.description": description } }
     );
 
     if (result.modifiedCount === 0) {

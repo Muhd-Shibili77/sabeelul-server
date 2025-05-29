@@ -68,7 +68,7 @@ export class ClassRepository implements IClassRepository {
     academicYear: string,
     item: string,
     score: number,
-    discription: string
+    description: string
   ): Promise<Class> {
     const cls = await ClassModel.findById(id);
     if (!cls) {
@@ -76,7 +76,7 @@ export class ClassRepository implements IClassRepository {
     }
     const updatedClass = await ClassModel.findByIdAndUpdate(
       id,
-      { $push: { marks: { academicYear, item, score, discription } } },
+      { $push: { marks: { academicYear, item, score, description } } },
       { new: true }
     );
     if (!updatedClass) {
@@ -110,7 +110,7 @@ export class ClassRepository implements IClassRepository {
         $set: {
           "marks.$.score": score,
           "marks.$.item": item,
-          "marks.$.discription": discription,
+          "marks.$.description": discription,
         },
       },
       { new: true }

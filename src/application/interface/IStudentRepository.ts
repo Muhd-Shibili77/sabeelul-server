@@ -10,7 +10,7 @@ export interface IStudentRepository{
     findByAdNo(admissionNo:string):Promise<Student | null>
     addExtraScore(id:string,academicYear:string,programName:string,mark:number,discription:string):Promise<Student>
     deleteExtraScore(id:string):Promise<null>
-    editExtraScore(id:string,mark:number):Promise<void>
+    editExtraScore(id:string,mark:number,description:string):Promise<void>
     addPenaltyScore(id:string,academicYear:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
     editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
     deletePenaltyScore(classId:string,markId:string):Promise<void>;

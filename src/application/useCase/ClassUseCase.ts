@@ -96,6 +96,7 @@ export class ClassUseCase {
   }
   async addScore(id: string, item: string, score: number,description:string): Promise<Class> {
     const academicYear = getCurrentAcademicYear();
+    
     const cls = await this.classRepository.findClassById(id);
     if (!cls) {
       throw new Error("Class not found");
@@ -120,6 +121,7 @@ export class ClassUseCase {
     if (!cls) {
       throw new Error("Class not found");
     }
+    
     const updatedClass = await this.classRepository.editScore(
       id,
       markId,

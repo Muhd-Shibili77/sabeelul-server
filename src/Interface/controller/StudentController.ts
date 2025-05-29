@@ -198,8 +198,8 @@ export class StudentController {
   async editStudentExtraScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      const { mark } = req.body;
-      await this.studentUsecase.editExtraScore(id, mark);
+      const { mark,description } = req.body;
+      await this.studentUsecase.editExtraScore(id, mark,description);
       res
         .status(StatusCode.OK)
         .json({

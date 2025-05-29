@@ -15,7 +15,7 @@ export class ExtraMarkItemRepository implements IExtraMarkItemRepository {
   }
 
   async getItems(): Promise<ExtraMarkItem[]> {
-    const items = await ExtraMarkItemModel.find({ isDeleted: false });
+    const items = await ExtraMarkItemModel.find({ isDeleted: false }).sort({createdAt:-1});
     return items.map((item) => item.toObject() as ExtraMarkItem);
   }
 

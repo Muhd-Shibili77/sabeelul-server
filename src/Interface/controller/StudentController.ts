@@ -217,6 +217,7 @@ export class StudentController {
   async addMentorScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
+      
       const { mark,semester } = req.body;
       const student = await this.studentUsecase.addMentorScore(id, mark,semester);
       res
@@ -236,6 +237,7 @@ export class StudentController {
   async addCceScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
+      
       const { classId,semester, subjectName, phase, mark } = req.body;
 
       const student = await this.studentUsecase.addCceScore(

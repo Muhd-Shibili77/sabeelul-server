@@ -22,10 +22,10 @@ export class HomeUseCase{
             throw new Error('class id not found')
         }
         const classLeaderBoard = await this.studentRepository.getTopStudentsInClass(classId)
+
         return classLeaderBoard
     }
     async fetchClassLeaderBoard(){
-       
         const classLeaderBoard = await this.studentRepository.getTopClass()
         return classLeaderBoard
     }

@@ -4,7 +4,7 @@ export interface IMarkLogs extends Document {
   userId: string;
   marks: {
     academicYear: string;
-    item: string;
+    title: string;
     score: number;
     date: Date;
     scoreType: String;
@@ -23,7 +23,7 @@ const markLogsSchema = new Schema<IMarkLogs>(
           type: String,
           required: true,
         },
-        item: {
+        title: {
           type: String,
           required: true,
         },

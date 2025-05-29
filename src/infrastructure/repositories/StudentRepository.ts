@@ -630,7 +630,7 @@ export class StudentRepository implements IStudentRepository {
                   },
                 },
                 as: "penf",
-                in: "$$penf.mark",
+                in: "$$penf.penaltyScore",
               },
             },
           },
@@ -757,7 +757,7 @@ export class StudentRepository implements IStudentRepository {
                   },
                 },
                 as: "penf",
-                in: "$$penf.mark",
+                in: "$$penf.penaltyScore",
               },
             },
           },
@@ -905,7 +905,7 @@ export class StudentRepository implements IStudentRepository {
                   },
                 },
                 as: "penf",
-                in: "$$penf.mark",
+                in: "$$penf.penaltyScore",
               },
             },
           },
@@ -1017,13 +1017,52 @@ export class StudentRepository implements IStudentRepository {
     return result || [];
   }
 
-  async findByClass(classId: string): Promise<Student[]> {
-    const students = await StudentModel.find({
-      classId,
-      isDeleted: false,
-    }).populate("classId");
-    return students.map((student) => student.toObject() as Student);
-  }
+  async findByClass(classId: string): Promise<(Student & { rankScore: number })[]> {
+  const academicYear = getCurrentAcademicYear();
+
+  const students = await StudentModel.find({
+    classId,
+    isDeleted: false,
+  }).populate("classId");
+
+  const rankedStudents = students.map((student) => {
+    const studentObj = student.toObject() as Student;
+
+    // ✅ 1. Sum of mentor marks (both semesters in this academic year)
+    const mentorMarkTotal = (studentObj.mentorMarks || [])
+      .filter((m) => m.academicYear === academicYear)
+      .reduce((sum, m) => sum + (m.mark || 0), 0);
+
+    // ✅ 2. Sum 20% of CCE marks (each subject in both semesters)
+    const cceMarkTotal = (studentObj.cceMarks || [])
+      .filter((cce) => cce.academicYear === academicYear)
+      .flatMap((cce) => cce.subjects || [])
+      .reduce((sum, subj) => sum + ((subj.mark || 0) * 0.2), 0);
+
+    // ✅ 3. Sum of extra marks
+    const extraMarkTotal = (studentObj.extraMarks || [])
+      .filter((extra) => extra.academicYear === academicYear)
+      .reduce((sum, e) => sum + (e.mark || 0), 0);
+
+    // ✅ 4. Sum of penalty marks
+    const penaltyTotal = (studentObj.penaltyMarks || [])
+      .filter((penalty) => penalty.academicYear === academicYear)
+      .reduce((sum, p) => sum + (p.penaltyScore || 0), 0);
+
+    const rankScore = mentorMarkTotal + cceMarkTotal + extraMarkTotal - penaltyTotal;
+
+    return {
+      ...studentObj,
+      rankScore,
+    };
+  });
+
+  // ✅ Sort students by rankScore descending (highest first)
+  rankedStudents.sort((a, b) => b.rankScore - a.rankScore);
+
+  return rankedStudents;
+}
+
 
   async isExist(data: string): Promise<boolean> {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex

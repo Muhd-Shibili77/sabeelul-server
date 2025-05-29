@@ -8,22 +8,23 @@ export class MarkLogRepository implements IMarkLogRepository {
   academicYear: string,
   item: string,
   score: number,
-  scoreType: string
+  scoreType: string,
+  isUpdate: boolean = false 
 ): Promise<MarkLogs> {
   const existingDoc = await MarkLogModel.findOne({ userId });
 
   const markEntry = {
     academicYear,
-    item,
+    title: isUpdate ? `${item} (Updated)` : item,
     score,
     date: new Date(),
     scoreType,
   };
 
   if (existingDoc) {
-    // Find index of existing mark with same academicYear and item
+    // Find index of existing mark with same academicYear and title
     const index = existingDoc.marks.findIndex(
-      (m: any) => m.academicYear === academicYear && m.item === item
+      (m: any) => m.academicYear === academicYear && (m.title === item || m.title === `${item} (Updated)`)
     );
 
     if (index !== -1) {
@@ -50,7 +51,7 @@ export class MarkLogRepository implements IMarkLogRepository {
 
 
   async getMarkLogs(userId: string, academicYear: string): Promise<MarkLogs[]> {
-    const markLogs = await MarkLogModel.find({ userId, "marks.academicYear": academicYear });
+    const markLogs = await MarkLogModel.find({ userId, "marks.academicYear": academicYear }).sort({updatedAt:-1});
     return markLogs.map((log) => new MarkLogs(log.toObject() as MarkLogs));
   }
 }

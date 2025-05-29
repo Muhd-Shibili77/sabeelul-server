@@ -83,7 +83,7 @@ const studentSchema = new Schema(
         academicYear: { type: String },
         semester: {
           type: String,
-          enum: ["Rabee’ Semester", "Ramadan Semester"],
+          enum: ["Rabee Semester", "Ramadan Semester"],
         },
         mark: { type: Number },
         date: { type: Date, default: () => new Date() },
@@ -95,7 +95,7 @@ const studentSchema = new Schema(
         academicYear: { type: String },
         semester: {
           type: String,
-          enum: ["Rabee’ Semester", "Ramadan Semester"],
+          enum: ["Rabee Semester", "Ramadan Semester"],
         },
         className: { type: String },
         subjects: [

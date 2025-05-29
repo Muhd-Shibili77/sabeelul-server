@@ -3,10 +3,11 @@ class MarkLogs {
   public readonly userId!: string;
   public marks!: {
     academicYear: string;
-    item: string;
+    title: string;
     score: number;
     date: Date;
     scoreType: String;
+    
   }[];
 
   constructor(data: Partial<MarkLogs>) {

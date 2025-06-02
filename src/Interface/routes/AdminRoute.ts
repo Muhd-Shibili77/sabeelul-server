@@ -18,9 +18,10 @@ router.get('/dashboard',authenticateJWT(['Admin']),async (req:Request,res:Respon
     await adminController.getDashboard(req,res)
 })
 router.route('/theme')
-.get(authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
+.get(authenticateJWT(['Admin','Student']),async (req:Request,res:Response)=>{
     await adminController.getTheme(req,res)
 })
+router.route('/theme/:id')
 .put(authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
     await adminController.updateTheme(req,res)
 })

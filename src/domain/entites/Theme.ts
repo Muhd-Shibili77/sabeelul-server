@@ -1,5 +1,5 @@
 class Theme{
-    public readonly id!:string;
+    public readonly _id!:string;
     public label!: string;
     public minMark!: number;
     public maxMark!: number;

@@ -362,12 +362,9 @@ export class StudentController {
   }
   async editPenaltyScore(req: Request, res: Response) {
     try {
-      const { updatedMark, markId } = req.body;
+      const { reason,description,penaltyScore, markId } = req.body;
 
       // Access values like this:
-      const reason = updatedMark.reason;
-      const description = updatedMark.description;
-      const penaltyScore = updatedMark.penaltyScore;
       const id: string = req.params.id;
       const updatedStudent = await this.studentUsecase.editPenaltyScore(
         id,
@@ -390,6 +387,8 @@ export class StudentController {
   }
   async deletePenaltyScore(req: Request, res: Response) {
     try {
+      console.log(req.params)
+      console.log(req.body)
       const id = req.params.id;
       const { markId } = req.body;
       const updatedStudent = await this.studentUsecase.deletePenaltyScore(

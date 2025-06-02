@@ -11,6 +11,10 @@ import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 import path from "path";
+
+
+import ThemeModel from "./infrastructure/models/ThemeModel";
+
 dotenv.config();
 const app = express();
 const URL = process.env.API_URL as string;
@@ -40,7 +44,18 @@ app.get("/", (req, res) => {
   res.send("server is working");
 });
 
+// async function addTheme(){
+//   const levels = [
+//   { label: "Green", minMark: 600, maxMark: 1000 },
+//   { label: "Blue", minMark: 500, maxMark: 599 },
+//   { label: "Purple", minMark: 400, maxMark: 499 },
+//   { label: "Orange", minMark: 300, maxMark: 399 },
+//   { label: "Red", minMark: 200, maxMark: 299 },
+//   { label: "Below Level", minMark: 0, maxMark: 199 },
+// ];
 
+// await ThemeModel.insertMany(levels)
+// }
 
 app.listen(process.env.PORT,()=>{
     console.log(`server is started at http://localhost:${process.env.PORT}`)

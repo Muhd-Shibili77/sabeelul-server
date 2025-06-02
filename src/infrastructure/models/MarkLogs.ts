@@ -30,6 +30,7 @@ const markLogsSchema = new Schema<IMarkLogs>(
         score: {
           type: Number,
           required: true,
+          default:0
         },
         date: {
           type: Date,

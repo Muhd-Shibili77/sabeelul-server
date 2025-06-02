@@ -230,12 +230,9 @@ export class ClassController {
   }
   async editPenaltyScore(req: Request, res: Response) {
     try {
-      const { updatedMark, markId } = req.body;
+      const { markId,reason, penaltyScore,description } = req.body;
 
-      // Access values like this:
-      const reason = updatedMark.reason;
-      const description = updatedMark.description;
-      const penaltyScore = updatedMark.penaltyScore;
+      
       const id: string = req.params.id;
       const updatedClass = await this.classUseCase.editPenaltyScore(
         id,

@@ -108,15 +108,15 @@ export class StudentRepository implements IStudentRepository {
     programName: string,
     mark: number,
     description: string
-  ): Promise<{ student: Student; addedMark: any,finalProgramName:string }> {
+  ): Promise<{ student: Student; addedMark: any; finalProgramName: string }> {
     const updateData: any = { academicYear, mark, description };
     let addedMark;
-     let finalProgramName = "";
+    let finalProgramName = "";
     if (mongoose.Types.ObjectId.isValid(programName)) {
       updateData.programId = programName;
-      const item = await ExtraMarkItemModel.findById(programName)
-      if(!item){
-        throw new Error('Invalid program name')
+      const item = await ExtraMarkItemModel.findById(programName);
+      if (!item) {
+        throw new Error("Invalid program name");
       }
       finalProgramName = item.item;
     } else {
@@ -136,10 +136,15 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("student add score failed");
     }
-    if(updatedStudent.extraMarks){
-       addedMark = updatedStudent.extraMarks[updatedStudent.extraMarks.length - 1];
+    if (updatedStudent.extraMarks) {
+      addedMark =
+        updatedStudent.extraMarks[updatedStudent.extraMarks.length - 1];
     }
-    return { student: new Student(updatedStudent.toObject() as Student), addedMark,finalProgramName };
+    return {
+      student: new Student(updatedStudent.toObject() as Student),
+      addedMark,
+      finalProgramName,
+    };
   }
 
   async addMentorScore(
@@ -147,7 +152,8 @@ export class StudentRepository implements IStudentRepository {
     academicYear: string,
     mark: number,
     semester: string
-  ): Promise<Student> {
+  ): Promise<{ student: Student; addedMark: any }> {
+    let addedMark;
     const student = await StudentModel.findById(id);
     if (!student) {
       throw new Error("student not found");
@@ -178,7 +184,17 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("Adding mentor failed");
     }
-    return new Student(updatedStudent.toObject() as Student);
+    if(updatedStudent.mentorMarks){
+       addedMark = updatedStudent.mentorMarks.find(
+        (entry) =>
+          entry.academicYear === academicYear && entry.semester === semester
+      );
+    }
+
+    return {
+      student: new Student(updatedStudent.toObject() as Student),
+      addedMark,
+    };
   }
   async addCceScore(
     id: string,
@@ -1044,8 +1060,7 @@ export class StudentRepository implements IStudentRepository {
       isDeleted: false,
     })
       .sort({ rank: 1 })
-      .populate("classId")
-      
+      .populate("classId");
 
     return students.map((item) => item.toObject() as Student);
   }
@@ -1065,7 +1080,7 @@ export class StudentRepository implements IStudentRepository {
     reason: string,
     penaltyScore: number,
     description: string
-  ): Promise<{ student: Student; addedMark: any}> {
+  ): Promise<{ student: Student; addedMark: any }> {
     const student = await StudentModel.findById(id);
     if (!student) {
       throw new Error("student not found");
@@ -1083,10 +1098,14 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("Class add score failed");
     }
-    if(updatedStudent.penaltyMarks){
-      addedMark = updatedStudent.penaltyMarks[updatedStudent.penaltyMarks.length - 1];
+    if (updatedStudent.penaltyMarks) {
+      addedMark =
+        updatedStudent.penaltyMarks[updatedStudent.penaltyMarks.length - 1];
     }
-    return { student: new Student(updatedStudent.toObject() as Student), addedMark };
+    return {
+      student: new Student(updatedStudent.toObject() as Student),
+      addedMark,
+    };
   }
   async editPenaltyScore(
     id: string,

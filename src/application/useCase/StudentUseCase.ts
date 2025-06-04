@@ -320,7 +320,7 @@ export class StudentUseCase {
     );
     const isUpdate = !!existingMentorMark;
 
-    const student = await this.studentRepository.addMentorScore(
+    const { student, addedMark } = await this.studentRepository.addMentorScore(
       id,
       academicYear,
       mark,
@@ -329,18 +329,28 @@ export class StudentUseCase {
     if (!student) {
       throw new Error("Adding mentor failed");
     }
+    const logTitle = `Mentor Score - ${semester}`;
 
-    // const recentInput = await this.markLogsRepository.addMarkLog(
-    //   id,
-    //   academicYear,
-    //   `Mentor Mark added - ${semester}.`,
-    //   mark,
-    //   "Mentor",
-    //   isUpdate
-    // );
-    // if (!recentInput) {
-    //   throw new Error("Adding mentor log failed");
-    // }
+    if (isUpdate && addedMark?._id) {
+    // 🔁 Update existing mark log
+    await this.markLogsRepository.updateMarkLog(
+      id,
+      addedMark._id.toString(),
+      mark,
+      logTitle
+    );
+  } else {
+    // ➕ Add new mark log
+    const recentInput = await this.markLogsRepository.addMarkLog(
+      id,
+      academicYear,
+      logTitle,
+      mark,
+      "Mentor",
+      addedMark._id
+    );
+    if (!recentInput) throw new Error("Adding mentor log failed");
+  }
     return student;
   }
 
@@ -614,7 +624,7 @@ export class StudentUseCase {
     if (!studentExist) {
       throw new Error("student not found");
     }
-    const {student,addedMark} = await this.studentRepository.addPenaltyScore(
+    const { student, addedMark } = await this.studentRepository.addPenaltyScore(
       id,
       academicYear,
       reason,
@@ -655,7 +665,12 @@ export class StudentUseCase {
       description
     );
     const logTitle = `Penalty Score - ${reason}`;
-    await this.markLogsRepository.updateMarkLog(id, markId, penaltyScore,logTitle);
+    await this.markLogsRepository.updateMarkLog(
+      id,
+      markId,
+      penaltyScore,
+      logTitle
+    );
 
     return updateClass;
   }

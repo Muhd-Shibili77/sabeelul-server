@@ -1,6 +1,7 @@
 class Student {
   public readonly id!: string;
   public admissionNo!: string;
+  public rank!: number;
   public name!: string;
   public phone!: number;
   public address!: string;

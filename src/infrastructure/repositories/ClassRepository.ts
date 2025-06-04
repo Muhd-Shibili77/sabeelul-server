@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { IClassRepository } from "../../application/interface/IClassRepository";
 import Class from "../../domain/entites/Class";
 import Student from "../../domain/entites/Student";
@@ -27,7 +28,7 @@ export class ClassRepository implements IClassRepository {
     }
   }
   async findClassById(id: string): Promise<Class | null> {
-    const cls = await ClassModel.findById(id);
+    const cls = await ClassModel.findById(id).populate("marks.item");
     if (!cls) {
       return null;
     }
@@ -45,7 +46,8 @@ export class ClassRepository implements IClassRepository {
       const classes = await ClassModel.find(query)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ name: 1 });
+        .sort({ name: 1 })
+        
 
       return {
         classes: classes.map(
@@ -54,7 +56,9 @@ export class ClassRepository implements IClassRepository {
         totalPages,
       };
     } else {
-      const classes = await ClassModel.find(query).sort({ name: 1 });
+      const classes = await ClassModel.find(query)
+        .sort({ name: 1 })
+        .populate("marks.item");
       return {
         classes: classes.map(
           (classData) => new Class(classData.toObject() as Class)
@@ -74,9 +78,16 @@ export class ClassRepository implements IClassRepository {
     if (!cls) {
       throw new Error("Class not found");
     }
+    const updateData: any = { academicYear, score, description };
+
+    if (mongoose.Types.ObjectId.isValid(item)) {
+      updateData.item = item;
+    } else {
+      updateData.customItem = item;
+    }
     const updatedClass = await ClassModel.findByIdAndUpdate(
       id,
-      { $push: { marks: { academicYear, item, score, description } } },
+      { $push: { marks: updateData } },
       { new: true }
     );
     if (!updatedClass) {
@@ -192,7 +203,7 @@ export class ClassRepository implements IClassRepository {
     const existClass = await ClassModel.findOne({
       name: name,
       isDeleted: false,
-    });
+    }).populate("marks.item");
     if (!existClass) {
       return null;
     }
@@ -217,7 +228,11 @@ export class ClassRepository implements IClassRepository {
     }
     const updatedClass = await ClassModel.findByIdAndUpdate(
       id,
-      { $push: { penaltyMarks: { academicYear, reason, penaltyScore, description } } },
+      {
+        $push: {
+          penaltyMarks: { academicYear, reason, penaltyScore, description },
+        },
+      },
       { new: true }
     );
     if (!updatedClass) {
@@ -226,18 +241,26 @@ export class ClassRepository implements IClassRepository {
     return new Class(updatedClass.toObject() as Class);
   }
 
-  async editPenaltyScore(id: string, markId: string, reason: string, penaltyScore: number, description: string): Promise<Class> {
+  async editPenaltyScore(
+    id: string,
+    markId: string,
+    reason: string,
+    penaltyScore: number,
+    description: string
+  ): Promise<Class> {
     const cls = await ClassModel.findById(id);
     if (!cls) {
       throw new Error("Class not found");
     }
 
-    const markExists = cls.penaltyMarks?.some((m: any) => m._id.toString() === markId);
+    const markExists = cls.penaltyMarks?.some(
+      (m: any) => m._id.toString() === markId
+    );
     if (!markExists) {
       throw new Error("Penalty Mark not found in class");
     }
 
-     const updatedClassDoc = await ClassModel.findOneAndUpdate(
+    const updatedClassDoc = await ClassModel.findOneAndUpdate(
       { _id: id, "penaltyMarks._id": markId },
       {
         $set: {
@@ -248,7 +271,7 @@ export class ClassRepository implements IClassRepository {
       },
       { new: true }
     );
-     if (!updatedClassDoc) {
+    if (!updatedClassDoc) {
       throw new Error("Failed to update the score");
     }
 

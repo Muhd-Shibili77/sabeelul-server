@@ -46,6 +46,7 @@ export class StudentController {
     try {
       const {
         admissionNo,
+        rank,
         name,
         phone,
         email,
@@ -57,6 +58,7 @@ export class StudentController {
       } = req.body;
       const newStudent = await this.studentUsecase.addStudent(
         admissionNo,
+        rank,
         name,
         phone,
         email,
@@ -101,6 +103,7 @@ export class StudentController {
 
       const {
         admissionNo,
+        rank,
         name,
         phone,
         email,
@@ -113,6 +116,7 @@ export class StudentController {
       const updatedStudent = await this.studentUsecase.updateStudent(
         id,
         admissionNo,
+        rank,
         name,
         phone,
         email,
@@ -181,7 +185,9 @@ export class StudentController {
   async deleteStudentExtraScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      await this.studentUsecase.deleteExtraScore(id);
+      
+      const {userId} = req.body
+      await this.studentUsecase.deleteExtraScore(id,userId);
       res
         .status(StatusCode.OK)
         .json({
@@ -198,8 +204,8 @@ export class StudentController {
   async editStudentExtraScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      const { mark,description } = req.body;
-      await this.studentUsecase.editExtraScore(id, mark,description);
+      const { mark,description,userId } = req.body;
+      await this.studentUsecase.editExtraScore(id, mark,description,userId);
       res
         .status(StatusCode.OK)
         .json({
@@ -387,8 +393,6 @@ export class StudentController {
   }
   async deletePenaltyScore(req: Request, res: Response) {
     try {
-      console.log(req.params)
-      console.log(req.body)
       const id = req.params.id;
       const { markId } = req.body;
       const updatedStudent = await this.studentUsecase.deletePenaltyScore(

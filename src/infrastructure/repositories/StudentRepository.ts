@@ -6,6 +6,7 @@ import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 import classModel from "../models/ClassModel";
 import TeacherModel from "../models/TeacherModel";
+import ExtraMarkItemModel from "../models/ExtraMarkItemModel";
 export class StudentRepository implements IStudentRepository {
   async addStudent(student: Student): Promise<Student> {
     const newStudent = new StudentModel(student);
@@ -68,7 +69,7 @@ export class StudentRepository implements IStudentRepository {
     return new Student(studentDoc.toObject() as Student);
   }
 
-  async deleteExtraScore(id: string): Promise<null> {
+  async deleteExtraScore(id: string): Promise<Boolean> {
     const result = await StudentModel.updateOne(
       { "extraMarks._id": id },
       { $pull: { extraMarks: { _id: id } } }
@@ -78,13 +79,22 @@ export class StudentRepository implements IStudentRepository {
       throw new Error("Extra mark not found or already deleted");
     }
 
-    return null;
+    return true;
   }
 
-  async editExtraScore(id: string, mark: number,description:string): Promise<void> {
+  async editExtraScore(
+    id: string,
+    mark: number,
+    description: string
+  ): Promise<void> {
     const result = await StudentModel.updateOne(
       { "extraMarks._id": id },
-      { $set: { "extraMarks.$.mark": mark,"extraMarks.$.description": description } }
+      {
+        $set: {
+          "extraMarks.$.mark": mark,
+          "extraMarks.$.description": description,
+        },
+      }
     );
 
     if (result.modifiedCount === 0) {
@@ -98,12 +108,20 @@ export class StudentRepository implements IStudentRepository {
     programName: string,
     mark: number,
     description: string
-  ): Promise<Student> {
+  ): Promise<{ student: Student; addedMark: any,finalProgramName:string }> {
     const updateData: any = { academicYear, mark, description };
+    let addedMark;
+     let finalProgramName = "";
     if (mongoose.Types.ObjectId.isValid(programName)) {
       updateData.programId = programName;
+      const item = await ExtraMarkItemModel.findById(programName)
+      if(!item){
+        throw new Error('Invalid program name')
+      }
+      finalProgramName = item.item;
     } else {
       updateData.customProgramName = programName;
+      finalProgramName = programName;
     }
 
     const updatedStudent = await StudentModel.findByIdAndUpdate(
@@ -118,7 +136,10 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("student add score failed");
     }
-    return new Student(updatedStudent.toObject() as Student);
+    if(updatedStudent.extraMarks){
+       addedMark = updatedStudent.extraMarks[updatedStudent.extraMarks.length - 1];
+    }
+    return { student: new Student(updatedStudent.toObject() as Student), addedMark,finalProgramName };
   }
 
   async addMentorScore(
@@ -1017,52 +1038,17 @@ export class StudentRepository implements IStudentRepository {
     return result || [];
   }
 
-  async findByClass(classId: string): Promise<(Student & { rankScore: number })[]> {
-  const academicYear = getCurrentAcademicYear();
+  async findByClass(classId: string): Promise<Student[]> {
+    const students = await StudentModel.find({
+      classId,
+      isDeleted: false,
+    })
+      .sort({ rank: 1 })
+      .populate("classId")
+      
 
-  const students = await StudentModel.find({
-    classId,
-    isDeleted: false,
-  }).populate("classId");
-
-  const rankedStudents = students.map((student) => {
-    const studentObj = student.toObject() as Student;
-
-    // ✅ 1. Sum of mentor marks (both semesters in this academic year)
-    const mentorMarkTotal = (studentObj.mentorMarks || [])
-      .filter((m) => m.academicYear === academicYear)
-      .reduce((sum, m) => sum + (m.mark || 0), 0);
-
-    // ✅ 2. Sum 20% of CCE marks (each subject in both semesters)
-    const cceMarkTotal = (studentObj.cceMarks || [])
-      .filter((cce) => cce.academicYear === academicYear)
-      .flatMap((cce) => cce.subjects || [])
-      .reduce((sum, subj) => sum + ((subj.mark || 0) * 0.2), 0);
-
-    // ✅ 3. Sum of extra marks
-    const extraMarkTotal = (studentObj.extraMarks || [])
-      .filter((extra) => extra.academicYear === academicYear)
-      .reduce((sum, e) => sum + (e.mark || 0), 0);
-
-    // ✅ 4. Sum of penalty marks
-    const penaltyTotal = (studentObj.penaltyMarks || [])
-      .filter((penalty) => penalty.academicYear === academicYear)
-      .reduce((sum, p) => sum + (p.penaltyScore || 0), 0);
-
-    const rankScore = mentorMarkTotal + cceMarkTotal + extraMarkTotal - penaltyTotal;
-
-    return {
-      ...studentObj,
-      rankScore,
-    };
-  });
-
-  // ✅ Sort students by rankScore descending (highest first)
-  rankedStudents.sort((a, b) => b.rankScore - a.rankScore);
-
-  return rankedStudents;
-}
-
+    return students.map((item) => item.toObject() as Student);
+  }
 
   async isExist(data: string): Promise<boolean> {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data); // basic email regex
@@ -1079,11 +1065,12 @@ export class StudentRepository implements IStudentRepository {
     reason: string,
     penaltyScore: number,
     description: string
-  ): Promise<Student> {
+  ): Promise<{ student: Student; addedMark: any}> {
     const student = await StudentModel.findById(id);
     if (!student) {
       throw new Error("student not found");
     }
+    let addedMark;
     const updatedStudent = await StudentModel.findByIdAndUpdate(
       id,
       {
@@ -1096,7 +1083,10 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("Class add score failed");
     }
-    return new Student(updatedStudent.toObject() as Student);
+    if(updatedStudent.penaltyMarks){
+      addedMark = updatedStudent.penaltyMarks[updatedStudent.penaltyMarks.length - 1];
+    }
+    return { student: new Student(updatedStudent.toObject() as Student), addedMark };
   }
   async editPenaltyScore(
     id: string,

@@ -31,6 +31,7 @@ export class StudentUseCase {
 
   async addStudent(
     admissionNo: string,
+    rank: number,
     name: string,
     phone: number,
     email: string,
@@ -45,6 +46,7 @@ export class StudentUseCase {
       !email ||
       !password ||
       !admissionNo ||
+      !rank ||
       !address ||
       !phone ||
       !guardianName ||
@@ -70,6 +72,7 @@ export class StudentUseCase {
     const hashedPassword = await bcrypt.hash(password, 10);
     const student = new Student({
       admissionNo: admissionNo,
+      rank,
       name,
       phone,
       address,
@@ -97,6 +100,7 @@ export class StudentUseCase {
   async updateStudent(
     id: string,
     admissionNo: string,
+    rank: number,
     name: string,
     phone: number,
     email: string,
@@ -116,6 +120,9 @@ export class StudentUseCase {
 
     if (!admissionNo) {
       throw new Error("Admission number is required.");
+    }
+    if (!rank) {
+      throw new Error("Rank is required.");
     }
 
     if (!address) {
@@ -157,6 +164,7 @@ export class StudentUseCase {
 
     const student = new Student({
       admissionNo: admissionNo,
+      rank,
       name,
       phone,
       address,
@@ -213,41 +221,50 @@ export class StudentUseCase {
     if (!studentExist) {
       throw new Error("student not exist");
     }
-    const student = await this.studentRepository.addExtraScore(
-      id,
-      academicYear,
-      programName,
-      mark,
-      description
-    );
+    const { student, addedMark, finalProgramName } =
+      await this.studentRepository.addExtraScore(
+        id,
+        academicYear,
+        programName,
+        mark,
+        description
+      );
     if (!student) {
       throw new Error("score is not updated to student");
     }
-
-     const recentInput = await this.markLogsRepository.addMarkLog(
+    const logTitle = `Credit Score - ${finalProgramName}`;
+    const recentInput = await this.markLogsRepository.addMarkLog(
       id,
       academicYear,
-      `Extra mark added`,
+      logTitle,
       mark,
       "Credit",
-      false
+      addedMark._id
     );
     if (!recentInput) {
       throw new Error("Adding Extra log failed");
     }
     return student;
   }
-  async deleteExtraScore(id: string) {
+  async deleteExtraScore(id: string, userId: string) {
     if (!id) {
       throw new Error("id is required");
     }
-    
+
     const student = await this.studentRepository.deleteExtraScore(id);
-     
+    if (!student) {
+      throw new Error("Error in deleting extra mark");
+    }
+    const recentInput = await this.markLogsRepository.deleteMarkLog(userId, id);
 
     return student;
   }
-  async editExtraScore(id: string, mark: number,description:string) {
+  async editExtraScore(
+    id: string,
+    mark: number,
+    description: string,
+    userId: string
+  ) {
     if (!id) {
       throw new Error("id is required");
     }
@@ -257,8 +274,16 @@ export class StudentUseCase {
     if (!description) {
       throw new Error("description is required");
     }
-    
-    const student = await this.studentRepository.editExtraScore(id, mark,description);
+    if (!userId) {
+      throw new Error("userId is required");
+    }
+
+    const student = await this.studentRepository.editExtraScore(
+      id,
+      mark,
+      description
+    );
+    await this.markLogsRepository.updateMarkLog(userId, id, mark);
     return student;
   }
 
@@ -305,104 +330,108 @@ export class StudentUseCase {
       throw new Error("Adding mentor failed");
     }
 
-    const recentInput = await this.markLogsRepository.addMarkLog(
-      id,
-      academicYear,
-      `Mentor Mark added - ${semester}.`,
-      mark,
-      "Mentor",
-      isUpdate
-    );
-    if (!recentInput) {
-      throw new Error("Adding mentor log failed");
-    }
+    // const recentInput = await this.markLogsRepository.addMarkLog(
+    //   id,
+    //   academicYear,
+    //   `Mentor Mark added - ${semester}.`,
+    //   mark,
+    //   "Mentor",
+    //   isUpdate
+    // );
+    // if (!recentInput) {
+    //   throw new Error("Adding mentor log failed");
+    // }
     return student;
   }
 
   async addCceScore(
-  id: string,
-  classId: string,
-  semester: string,
-  phase: string,
-  subjectName: string,
-  mark: number
-): Promise<Student> {
-  const academicYear = getCurrentAcademicYear();
-  if (!id) throw new Error("id is required");
-  if (!academicYear) throw new Error("academicYear is required");
-  if (!classId) throw new Error("className is required");
-  if (!subjectName) throw new Error("subjectName is required");
-  if (!phase) throw new Error("phase is required");
-  if (mark === undefined || mark === null) throw new Error("mark is required");
-  if (mark <= 0) throw new Error("mark must be greater than zero");
-  if (!semester) throw new Error("semester is required");
+    id: string,
+    classId: string,
+    semester: string,
+    phase: string,
+    subjectName: string,
+    mark: number
+  ): Promise<Student> {
+    const academicYear = getCurrentAcademicYear();
+    if (!id) throw new Error("id is required");
+    if (!academicYear) throw new Error("academicYear is required");
+    if (!classId) throw new Error("className is required");
+    if (!subjectName) throw new Error("subjectName is required");
+    if (!phase) throw new Error("phase is required");
+    if (mark === undefined || mark === null)
+      throw new Error("mark is required");
+    if (mark <= 0) throw new Error("mark must be greater than zero");
+    if (!semester) throw new Error("semester is required");
 
-  const studentExist = await this.studentRepository.findStudentById(id);
-  if (!studentExist) throw new Error("student not exist");
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) throw new Error("student not exist");
 
-  // Check total mark for this subject (across all phases)
-  const existingCceRecord = studentExist.cceMarks?.find(
-    (record) =>
-      record.academicYear === academicYear && record.semester === semester
-  );
-
-  let existingSubjectPhase: any = null;
-  let totalMarkForSubject = 0;
-  if (existingCceRecord) {
-    const subjectPhases = existingCceRecord.subjects?.filter(
-      (entry) => entry.subjectName === subjectName
-    ) || [];
-
-    // Calculate total mark across all phases for this subject
-    totalMarkForSubject = subjectPhases.reduce(
-      (acc, entry) => acc + entry.mark,
-      0
+    // Check total mark for this subject (across all phases)
+    const existingCceRecord = studentExist.cceMarks?.find(
+      (record) =>
+        record.academicYear === academicYear && record.semester === semester
     );
 
-    // Check if this phase already exists (for update check)
-    existingSubjectPhase = subjectPhases.find(
-      (entry) => entry.phase === phase
+    let existingSubjectPhase: any = null;
+    let totalMarkForSubject = 0;
+    if (existingCceRecord) {
+      const subjectPhases =
+        existingCceRecord.subjects?.filter(
+          (entry) => entry.subjectName === subjectName
+        ) || [];
+
+      // Calculate total mark across all phases for this subject
+      totalMarkForSubject = subjectPhases.reduce(
+        (acc, entry) => acc + entry.mark,
+        0
+      );
+
+      // Check if this phase already exists (for update check)
+      existingSubjectPhase = subjectPhases.find(
+        (entry) => entry.phase === phase
+      );
+    }
+
+    const isUpdate = !!existingSubjectPhase;
+
+    // If updating an existing phase, subtract its old mark before comparison
+    const markAfterUpdate = isUpdate
+      ? totalMarkForSubject - existingSubjectPhase.mark + mark
+      : totalMarkForSubject + mark;
+
+    if (markAfterUpdate > 30) {
+      throw new Error(
+        "Total mark for this subject exceeds maximum allowed (30)"
+      );
+    }
+
+    const updatedStudent = await this.studentRepository.addCceScore(
+      id,
+      academicYear,
+      semester,
+      classId,
+      phase,
+      subjectName,
+      mark
     );
+    if (!updatedStudent) {
+      throw new Error("Failed to add CCE mark to student");
+    }
+
+    // const recentInput = await this.markLogsRepository.addMarkLog(
+    //   id,
+    //   academicYear,
+    //   `CCE Mark added for ${subjectName} - ${semester}.`,
+    //   mark,
+    //   "CCE",
+    //   isUpdate
+    // );
+    // if (!recentInput) {
+    //   throw new Error("Adding CCE log failed");
+    // }
+
+    return updatedStudent;
   }
-
-  const isUpdate = !!existingSubjectPhase;
-
-  // If updating an existing phase, subtract its old mark before comparison
-  const markAfterUpdate = isUpdate
-    ? totalMarkForSubject - existingSubjectPhase.mark + mark
-    : totalMarkForSubject + mark;
-
-  if (markAfterUpdate > 30) {
-    throw new Error("Total mark for this subject exceeds maximum allowed (30)");
-  }
-
-  const updatedStudent = await this.studentRepository.addCceScore(
-    id,
-    academicYear,
-    semester,
-    classId,
-    phase,
-    subjectName,
-    mark
-  );
-  if (!updatedStudent) {
-    throw new Error("Failed to add CCE mark to student");
-  }
-
-  const recentInput = await this.markLogsRepository.addMarkLog(
-    id,
-    academicYear,
-    `CCE Mark added for ${subjectName} - ${semester}.`,
-    mark,
-    "CCE",
-    isUpdate
-  );
-  if (!recentInput) {
-    throw new Error("Adding CCE log failed");
-  }
-
-  return updatedStudent;
-}
 
   async fetchProfile(id: string) {
     if (!id) {
@@ -548,7 +577,10 @@ export class StudentUseCase {
       cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200 - penaltyMarkTotal
     );
 
-    const recentInputs = await this.markLogsRepository.getMarkLogs(id,academicYear) 
+    const recentInputs = await this.markLogsRepository.getMarkLogs(
+      id,
+      academicYear
+    );
 
     const details = {
       totalScore: totalMarks,
@@ -578,30 +610,31 @@ export class StudentUseCase {
     description: string
   ): Promise<Student> {
     const academicYear = getCurrentAcademicYear();
-    const student = await this.studentRepository.findStudentById(id);
-    if (!student) {
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) {
       throw new Error("student not found");
     }
-    const updateClass = await this.studentRepository.addPenaltyScore(
+    const {student,addedMark} = await this.studentRepository.addPenaltyScore(
       id,
       academicYear,
       reason,
       penaltyScore,
       description
     );
+    const logTitle = `Penalty Score - ${reason}`;
 
     const recentInput = await this.markLogsRepository.addMarkLog(
       id,
       academicYear,
-      `Penalty Mark Added - ${reason}.`,
+      logTitle,
       penaltyScore,
       "Penalty",
-      false
+      addedMark._id
     );
     if (!recentInput) {
       throw new Error("Adding penalty log failed");
     }
-    return updateClass;
+    return student;
   }
   async editPenaltyScore(
     id: string,
@@ -621,6 +654,9 @@ export class StudentUseCase {
       penaltyScore,
       description
     );
+    const logTitle = `Penalty Score - ${reason}`;
+    await this.markLogsRepository.updateMarkLog(id, markId, penaltyScore,logTitle);
+
     return updateClass;
   }
   async deletePenaltyScore(id: string, markId: string): Promise<void> {
@@ -633,17 +669,7 @@ export class StudentUseCase {
       id,
       markId
     );
-    const recentInput = await this.markLogsRepository.addMarkLog(
-      id,
-      academicYear,
-      `Penalty Mark Deleted.`,
-      0,
-      "Penalty",
-      false
-    );
-    if (!recentInput) {
-      throw new Error("Adding penalty log failed");
-    }
+    const recentInput = await this.markLogsRepository.deleteMarkLog(id, markId);
 
     return updatedClass;
   }

@@ -42,6 +42,7 @@ app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
 app.get("/", (req, res) => {
   res.send("server is working");
+  
 });
 
 // async function addTheme(){

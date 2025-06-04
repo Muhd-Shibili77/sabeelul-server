@@ -46,12 +46,17 @@ const classSchema = new Schema<IClass>(
           required: true,
         },
         item: {
-          type: String,
-          required: true,
+          type: mongoose.Schema.Types.ObjectId,
+          ref:'ExtraMarkItem',
+          default:null
         },
         score: {
           type: Number,
           required: true,
+        },
+        customItem:{
+          type: String,
+          default:null
         },
         description: {
           type: String,

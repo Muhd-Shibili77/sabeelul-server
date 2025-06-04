@@ -8,10 +8,10 @@ export interface IStudentRepository{
     findStudentById(id: string): Promise<Student | null>;
     updateStudent(id: string, student: Student): Promise<Student>;
     findByAdNo(admissionNo:string):Promise<Student | null>
-    addExtraScore(id:string,academicYear:string,programName:string,mark:number,discription:string):Promise<Student>
-    deleteExtraScore(id:string):Promise<null>
+    addExtraScore(id:string,academicYear:string,programName:string,mark:number,discription:string):Promise<{ student: Student; addedMark: any,finalProgramName:string }>
+    deleteExtraScore(id:string):Promise<Boolean>
     editExtraScore(id:string,mark:number,description:string):Promise<void>
-    addPenaltyScore(id:string,academicYear:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
+    addPenaltyScore(id:string,academicYear:string,reason:string,penaltyScore:number,description:string):Promise<{ student: Student; addedMark: any}> ;
     editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Student>;
     deletePenaltyScore(classId:string,markId:string):Promise<void>;
     addMentorScore(id:string,academicYear:string,mark:number,semester:string):Promise<Student>

@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IStudent extends Document {
   admissionNo: string;
+  rank:number;
   name: string;
   phone: number;
   address: string;
@@ -49,6 +50,7 @@ export interface IStudent extends Document {
 const studentSchema = new Schema(
   {
     admissionNo: { type: String, required: true, unique: true },
+    rank: { type: Number, required: true,default:0},
     name: { type: String, required: true },
     phone: { type: Number, required: true },
     address: { type: String, required: true },

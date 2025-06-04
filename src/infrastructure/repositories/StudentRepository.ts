@@ -184,8 +184,8 @@ export class StudentRepository implements IStudentRepository {
     if (!updatedStudent) {
       throw new Error("Adding mentor failed");
     }
-    if(updatedStudent.mentorMarks){
-       addedMark = updatedStudent.mentorMarks.find(
+    if (updatedStudent.mentorMarks) {
+      addedMark = updatedStudent.mentorMarks.find(
         (entry) =>
           entry.academicYear === academicYear && entry.semester === semester
       );
@@ -204,9 +204,10 @@ export class StudentRepository implements IStudentRepository {
     subjectName: string,
     phase: string,
     mark: number
-  ): Promise<Student> {
+  ): Promise<{student: Student; addedMark: any}> {
     const classDoc = await classModel.findById(classId).select("name");
     const className = classDoc?.name;
+    let addedMark;
     if (!className) {
       throw new Error("class not found");
     }
@@ -263,8 +264,26 @@ export class StudentRepository implements IStudentRepository {
       });
     }
 
-    await student.save();
-    return new Student(student.toObject() as Student);
+    const updatedStudent = await student.save();
+    if (updatedStudent.cceMarks) {
+      const academicRecord = updatedStudent.cceMarks.find(
+        (record) =>
+          record.academicYear === academicYear &&
+          record.semester === semester &&
+          record.className === className
+      );
+
+      if (academicRecord) {
+        addedMark = academicRecord.subjects.find(
+          (entry) => entry.subjectName === subjectName && entry.phase === phase
+        );
+      }
+    }
+
+    return{
+      student : new Student(updatedStudent.toObject() as Student),
+      addedMark
+    } 
   }
 
   async fetchProfile(id: string): Promise<Student> {

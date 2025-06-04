@@ -332,25 +332,25 @@ export class StudentUseCase {
     const logTitle = `Mentor Score - ${semester}`;
 
     if (isUpdate && addedMark?._id) {
-    // 🔁 Update existing mark log
-    await this.markLogsRepository.updateMarkLog(
-      id,
-      addedMark._id.toString(),
-      mark,
-      logTitle
-    );
-  } else {
-    // ➕ Add new mark log
-    const recentInput = await this.markLogsRepository.addMarkLog(
-      id,
-      academicYear,
-      logTitle,
-      mark,
-      "Mentor",
-      addedMark._id
-    );
-    if (!recentInput) throw new Error("Adding mentor log failed");
-  }
+      // 🔁 Update existing mark log
+      await this.markLogsRepository.updateMarkLog(
+        id,
+        addedMark._id.toString(),
+        mark,
+        logTitle
+      );
+    } else {
+      // ➕ Add new mark log
+      const recentInput = await this.markLogsRepository.addMarkLog(
+        id,
+        academicYear,
+        logTitle,
+        mark,
+        "Mentor",
+        addedMark._id
+      );
+      if (!recentInput) throw new Error("Adding mentor log failed");
+    }
     return student;
   }
 
@@ -415,7 +415,7 @@ export class StudentUseCase {
       );
     }
 
-    const updatedStudent = await this.studentRepository.addCceScore(
+    const { student, addedMark } = await this.studentRepository.addCceScore(
       id,
       academicYear,
       semester,
@@ -424,23 +424,33 @@ export class StudentUseCase {
       subjectName,
       mark
     );
-    if (!updatedStudent) {
+    if (!student) {
       throw new Error("Failed to add CCE mark to student");
     }
+     const logTitle = `CCE Mark - ${subjectName} (${phase}) - ${semester}`;
+    if (isUpdate && addedMark?._id) {
+      await this.markLogsRepository.updateMarkLog(
+        id,
+        addedMark._id.toString(),
+        mark,
+        logTitle
+      );
+    }else{
+      const recentInput = await this.markLogsRepository.addMarkLog(
+        id,
+        academicYear,
+        logTitle,
+        mark,
+        "CCE",
+        addedMark._id
+      );
+      if (!recentInput) {
+        throw new Error("Adding CCE log failed");
+      }
 
-    // const recentInput = await this.markLogsRepository.addMarkLog(
-    //   id,
-    //   academicYear,
-    //   `CCE Mark added for ${subjectName} - ${semester}.`,
-    //   mark,
-    //   "CCE",
-    //   isUpdate
-    // );
-    // if (!recentInput) {
-    //   throw new Error("Adding CCE log failed");
-    // }
+    }
 
-    return updatedStudent;
+    return student;
   }
 
   async fetchProfile(id: string) {

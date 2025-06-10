@@ -52,17 +52,17 @@ const studentSchema = new Schema(
     admissionNo: { type: String, required: true, unique: true },
     rank: { type: Number, required: true,default:0},
     name: { type: String, required: true },
-    phone: { type: Number, required: true },
-    address: { type: String, required: true },
-    email: { type: String, required: true },
+    phone: { type: Number },
+    address: { type: String },
+    email: { type: String },
     password: { type: String, required: true },
     classId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Class",
       required: true,
     },
-    guardianName: { type: String, required: true },
-    profileImage: { type: String, required: true },
+    guardianName: { type: String },
+    profileImage: { type: String },
     isDeleted: { type: Boolean, default: false },
 
     extraMarks: [

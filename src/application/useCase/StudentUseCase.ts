@@ -43,34 +43,45 @@ export class StudentUseCase {
   ): Promise<Student> {
     if (
       !name ||
-      !email ||
+      // !email ||
       !password ||
       !admissionNo ||
-      !rank ||
-      !address ||
-      !phone ||
-      !guardianName ||
+      // !rank ||
+      // !address ||
+      // !phone ||
+      // !guardianName ||
       !className
     ) {
       throw new Error("All required fields must be filled.");
     }
-    if (!validator.isEmail(email)) {
+    if (rank !== undefined && rank !== null && rank <= 0) {
+      throw new Error("Rank must be a positive number.");
+    }
+
+    // Validate email only if provided
+    if (email && email.trim() && !validator.isEmail(email.trim())) {
       throw new Error("Invalid email format.");
     }
-    const phoneStr = phone.toString();
-    if (!/^[0-9]{10}$/.test(phoneStr)) {
-      throw new Error("Phone number must be exactly 10 digits.");
+
+    // Validate phone only if provided
+
+    if (
+      phone !== undefined &&
+      phone !== null &&
+      phone.toString().trim() !== ""
+    ) {
+      const phoneStr = phone.toString();
+      if (!/^[0-9]{10}$/.test(phoneStr)) {
+        throw new Error("Phone number must be exactly 10 digits.");
+      }
     }
-    const isExist = await this.studentRepository.isExist(email);
-    if (isExist) {
-      throw new Error("Email already exist");
-    }
+
     if (password.length < 6) {
       throw new Error("Password must be at least 6 characters long.");
     }
-    const admNoExist = await this.studentRepository.findByAdNo(admissionNo)
-    if(admNoExist){
-      throw new Error('Adm No already exist')
+    const admNoExist = await this.studentRepository.findByAdNo(admissionNo);
+    if (admNoExist) {
+      throw new Error("Adm No already exist");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -118,8 +129,8 @@ export class StudentUseCase {
       throw new Error("Name is required.");
     }
 
-    if (!email) {
-      throw new Error("Email is required.");
+    if (email && email.trim() && !validator.isEmail(email.trim())) {
+      throw new Error("Invalid email format.");
     }
 
     if (!admissionNo) {
@@ -129,33 +140,24 @@ export class StudentUseCase {
       throw new Error("Rank is required.");
     }
 
-    if (!address) {
-      throw new Error("Address is required.");
-    }
-
-    if (!phone) {
-      throw new Error("Phone number is required.");
-    }
-
-    if (!guardianName) {
-      throw new Error("Guardian name is required.");
-    }
-
     if (!className) {
       throw new Error("Class is required.");
     }
 
-    if (!validator.isEmail(email)) {
-      throw new Error("Invalid email format.");
-    }
-    const phoneStr = phone.toString();
-    if (!/^[0-9]{10}$/.test(phoneStr)) {
-      throw new Error("Phone number must be exactly 10 digits.");
+    if (
+      phone !== undefined &&
+      phone !== null &&
+      phone.toString().trim() !== ""
+    ) {
+      const phoneStr = phone.toString();
+      if (!/^[0-9]{10}$/.test(phoneStr)) {
+        throw new Error("Phone number must be exactly 10 digits.");
+      }
     }
     if (password != "" && password.length < 5) {
       throw new Error("Password must be at least 5 characters long.");
     }
-     const admNoExist = await this.studentRepository.findByAdNo(admissionNo)
+    //  const admNoExist = await this.studentRepository.findByAdNo(admissionNo)
 
     // if(admNoExist?._id != id){
     //   throw new Error('Adm No already exist')
@@ -432,7 +434,7 @@ export class StudentUseCase {
     if (!student) {
       throw new Error("Failed to add CCE mark to student");
     }
-     const logTitle = `CCE Mark - ${subjectName} (${phase}) - ${semester}`;
+    const logTitle = `CCE Mark - ${subjectName} (${phase}) - ${semester}`;
     if (isUpdate && addedMark?._id) {
       await this.markLogsRepository.updateMarkLog(
         id,
@@ -440,7 +442,7 @@ export class StudentUseCase {
         mark,
         logTitle
       );
-    }else{
+    } else {
       const recentInput = await this.markLogsRepository.addMarkLog(
         id,
         academicYear,
@@ -452,7 +454,6 @@ export class StudentUseCase {
       if (!recentInput) {
         throw new Error("Adding CCE log failed");
       }
-
     }
 
     return student;

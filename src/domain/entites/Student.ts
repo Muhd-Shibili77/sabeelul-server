@@ -3,13 +3,13 @@ class Student {
   public admissionNo!: string;
   public rank!: number;
   public name!: string;
-  public phone!: number;
-  public address!: string;
-  public email!: string;
+  public phone?: number;
+  public address?: string;
+  public email?: string;
   public password!: string;
   public classId!: string;
-  public guardianName!: string;
-  public profileImage!: string;
+  public guardianName?: string;
+  public profileImage?: string;
   public isDeleted!: boolean;
   public extraMarks?: {
     academicYear: string;

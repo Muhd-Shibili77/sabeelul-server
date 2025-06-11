@@ -49,7 +49,7 @@ export interface IStudent extends Document {
 
 const studentSchema = new Schema(
   {
-    admissionNo: { type: String, required: true, unique: true },
+    admissionNo: { type: String, required: true},
     rank: { type: Number, required: true,default:0},
     name: { type: String, required: true },
     phone: { type: Number },

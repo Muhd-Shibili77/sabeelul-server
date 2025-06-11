@@ -977,7 +977,6 @@ export class StudentRepository implements IStudentRepository {
                   "$totalExtraMark",
                   "$totalMentorMark",
                   "$totalCceScore",
-                  200, // Optional bonus
                 ],
               },
               { $ifNull: ["$totalPenaltyMark", 0] },

@@ -7,34 +7,35 @@ export class StudentController {
   async fetchStudents(req: Request, res: Response) {
     try {
       const search: string = (req.query.search as string) || "";
+      const className: string = (req.query.class as string) || "";
       const page: number = parseInt(req.query.page as string) || 1;
       const limit: number = parseInt(req.query.limit as string) || 10;
 
-      const query = search
-        ? {
-            $or: [
-              { name: { $regex: search, $options: "i" }, isDeleted: false },
-              {
-                admissionNo: { $regex: search, $options: "i" },
-                isDeleted: false,
-              },
-            ],
-          }
-        : { isDeleted: false };
+      let query: any = { isDeleted: false };
+
+      // Add search filter
+      if (search) {
+        query.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { admissionNo: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      if (className.toLowerCase()) {
+        query.classId = className;
+      }
 
       const { students, totalPages } = await this.studentUsecase.fetchStudents(
         query,
         page,
         limit
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "Fetching of student is successfull",
-          students,
-          totalPages: totalPages,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of student is successfull",
+        students,
+        totalPages: totalPages,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -68,13 +69,11 @@ export class StudentController {
         guardianName,
         profile
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "Adding of student is successfull",
-          students: newStudent,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Adding of student is successfull",
+        students: newStudent,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -126,13 +125,11 @@ export class StudentController {
         guardianName,
         profile
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "Updating of student is successfull",
-          data: updatedStudent,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Updating of student is successfull",
+        data: updatedStudent,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -144,13 +141,11 @@ export class StudentController {
     try {
       const id: string = req.params.id;
       const student = await this.studentUsecase.findByAdmissinNo(id);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "fetching of student is successfull",
-          student,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching of student is successfull",
+        student,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -168,13 +163,11 @@ export class StudentController {
         mark,
         discription
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "add Extra mark to student is successfull",
-          data: student,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "add Extra mark to student is successfull",
+        data: student,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -185,15 +178,13 @@ export class StudentController {
   async deleteStudentExtraScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      
-      const {userId} = req.body
-      await this.studentUsecase.deleteExtraScore(id,userId);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "delete Extra mark to student is successfull",
-        });
+
+      const { userId } = req.body;
+      await this.studentUsecase.deleteExtraScore(id, userId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "delete Extra mark to student is successfull",
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -204,14 +195,12 @@ export class StudentController {
   async editStudentExtraScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      const { mark,description,userId } = req.body;
-      await this.studentUsecase.editExtraScore(id, mark,description,userId);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "edit Extra mark to student is successfull",
-        });
+      const { mark, description, userId } = req.body;
+      await this.studentUsecase.editExtraScore(id, mark, description, userId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "edit Extra mark to student is successfull",
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -223,16 +212,18 @@ export class StudentController {
   async addMentorScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      
-      const { mark,semester } = req.body;
-      const student = await this.studentUsecase.addMentorScore(id, mark,semester);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "add mentor mark to student is successful",
-          data: student,
-        });
+
+      const { mark, semester } = req.body;
+      const student = await this.studentUsecase.addMentorScore(
+        id,
+        mark,
+        semester
+      );
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "add mentor mark to student is successful",
+        data: student,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -243,8 +234,8 @@ export class StudentController {
   async addCceScore(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
-      
-      const { classId,semester, subjectName, phase, mark } = req.body;
+
+      const { classId, semester, subjectName, phase, mark } = req.body;
 
       const student = await this.studentUsecase.addCceScore(
         id,
@@ -254,13 +245,11 @@ export class StudentController {
         phase,
         mark
       );
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "add CCE mark to student is successful",
-          data: student,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "add CCE mark to student is successful",
+        data: student,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -273,13 +262,11 @@ export class StudentController {
     try {
       const id: string = req.params.id;
       const student = await this.studentUsecase.fetchProfile(id);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "fetching profile successfull",
-          student,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching profile successfull",
+        student,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -292,13 +279,11 @@ export class StudentController {
     try {
       const id: string = req.params.id;
       const dashboard = await this.studentUsecase.dashboard(id);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "fetching dashboard successfull",
-          dashboard,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching dashboard successfull",
+        dashboard,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -310,13 +295,11 @@ export class StudentController {
     try {
       const id: string = req.params.id;
       const performance = await this.studentUsecase.performance(id);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "fetching performance details successfull",
-          performance,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching performance details successfull",
+        performance,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -329,13 +312,11 @@ export class StudentController {
     try {
       const classId: string = req.params.id;
       const students = await this.studentUsecase.fetchByClass(classId);
-      res
-        .status(StatusCode.OK)
-        .json({
-          success: true,
-          message: "fetching students successfull",
-          students,
-        });
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching students successfull",
+        students,
+      });
     } catch (error: any) {
       console.error(error);
       res
@@ -368,7 +349,7 @@ export class StudentController {
   }
   async editPenaltyScore(req: Request, res: Response) {
     try {
-      const { reason,description,penaltyScore, markId } = req.body;
+      const { reason, description, penaltyScore, markId } = req.body;
 
       // Access values like this:
       const id: string = req.params.id;

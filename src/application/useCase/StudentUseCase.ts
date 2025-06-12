@@ -377,7 +377,7 @@ export class StudentUseCase {
     if (!phase) throw new Error("phase is required");
     if (mark === undefined || mark === null)
       throw new Error("mark is required");
-    if (mark <= 0) throw new Error("mark must be greater than zero");
+    if (mark < 0) throw new Error("mark must be greater than zero");
     if (!semester) throw new Error("semester is required");
 
     const studentExist = await this.studentRepository.findStudentById(id);

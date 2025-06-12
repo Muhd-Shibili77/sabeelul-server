@@ -309,7 +309,7 @@ export class StudentUseCase {
     if (!mark) {
       throw new Error("mark is required");
     }
-    if (mark <= 0) {
+    if (mark < 0) {
       throw new Error("mark is must be greater than zero");
     }
     if (!semester) {

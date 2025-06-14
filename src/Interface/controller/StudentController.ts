@@ -28,7 +28,8 @@ export class StudentController {
       const { students, totalPages } = await this.studentUsecase.fetchStudents(
         query,
         page,
-        limit
+        limit,
+        !!className
       );
       res.status(StatusCode.OK).json({
         success: true,

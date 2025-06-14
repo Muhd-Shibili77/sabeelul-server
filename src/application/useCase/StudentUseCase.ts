@@ -20,11 +20,12 @@ export class StudentUseCase {
     private markLogsRepository: IMarkLogRepository
   ) {}
 
-  async fetchStudents(query: object, page: number, limit: number) {
+  async fetchStudents(query: object, page: number, limit: number,isClassFiltered: boolean = false) {
     const students = await this.studentRepository.fetchStudents(
       query,
       page,
-      limit
+      limit,
+      isClassFiltered
     );
     return students;
   }
@@ -365,8 +366,8 @@ export class StudentUseCase {
     id: string,
     classId: string,
     semester: string,
-    phase: string,
     subjectName: string,
+    phase: string,
     mark: number
   ): Promise<Student> {
     const academicYear = getCurrentAcademicYear();
@@ -382,6 +383,9 @@ export class StudentUseCase {
 
     const studentExist = await this.studentRepository.findStudentById(id);
     if (!studentExist) throw new Error("student not exist");
+
+    // Determine the maximum limit based on the subject name
+    const maxLimit = subjectName === "Hifz and Tajwid" ? 100 : 30;
 
     // Check total mark for this subject (across all phases)
     const existingCceRecord = studentExist.cceMarks?.find(
@@ -416,9 +420,10 @@ export class StudentUseCase {
       ? totalMarkForSubject - existingSubjectPhase.mark + mark
       : totalMarkForSubject + mark;
 
-    if (markAfterUpdate > 30) {
+    // Use the dynamic limit based on subject
+    if (markAfterUpdate > maxLimit) {
       throw new Error(
-        "Total mark for this subject exceeds maximum allowed (30)"
+        `Total mark for ${subjectName} exceeds maximum allowed (${maxLimit})`
       );
     }
 
@@ -427,8 +432,8 @@ export class StudentUseCase {
       academicYear,
       semester,
       classId,
-      phase,
       subjectName,
+      phase,
       mark
     );
     if (!student) {

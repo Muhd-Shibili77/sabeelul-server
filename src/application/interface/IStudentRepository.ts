@@ -2,7 +2,7 @@ import Class from "../../domain/entites/Class";
 import Student from "../../domain/entites/Student";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 export interface IStudentRepository{
-    fetchStudents(query:object,page:number,limit:number): Promise<{students: Student[], totalPages: number}>;
+    fetchStudents(query:object,page:number,limit:number,isClassFiltered: boolean): Promise<{students: Student[], totalPages: number}>;
     addStudent(student: Student): Promise<Student>;
     deleteStudent(id: string): Promise<void>;
     findStudentById(id: string): Promise<Student | null>;

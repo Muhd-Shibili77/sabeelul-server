@@ -35,14 +35,20 @@ export class StudentRepository implements IStudentRepository {
   async fetchStudents(
     query: object,
     page: number,
-    limit: number
+    limit: number,
+    isClassFiltered: boolean = false
   ): Promise<{ students: Student[]; totalPages: number }> {
     const count = await StudentModel.countDocuments(query);
     const totalPages = Math.ceil(count / limit);
+
+      const sortCriteria:any = isClassFiltered 
+    ? { rank: 1} // Sort by rank first, then admission number
+    : { admissionNo: 1 }; // Default sort by admission number only
+
     const students = await StudentModel.find(query)
       .skip((page - 1) * limit)
       .limit(limit)
-      .sort({ admissionNo: 1 })
+      .sort(sortCriteria)
       .populate("classId name");
     return {
       students: students.map(

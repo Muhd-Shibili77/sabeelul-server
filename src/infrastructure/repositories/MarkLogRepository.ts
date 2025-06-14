@@ -85,7 +85,7 @@ export class MarkLogRepository implements IMarkLogRepository {
 
     const index = existingDoc.marks.findIndex((m: any) => m.markId === markId);
     if (index === -1) return;
-
+    
     existingDoc.marks[index].score = updatedScore;
     if (updatedTitle) {
       existingDoc.marks[index].title = updatedTitle;

@@ -13,6 +13,7 @@ import HomeRoute from './Interface/routes/HomeRoute'
 import path from "path";
 
 
+
 import ThemeModel from "./infrastructure/models/ThemeModel";
 
 dotenv.config();
@@ -42,7 +43,6 @@ app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
 app.get("/", (req, res) => {
   res.send("server is working");
-  
 });
 
 // async function addTheme(){
@@ -56,6 +56,44 @@ app.get("/", (req, res) => {
 // ];
 
 // await ThemeModel.insertMany(levels)
+// }
+
+// import XLSX from 'xlsx';
+// import classModel from "./infrastructure/models/ClassModel";
+
+// async function convertExcelToSubjects() {
+//   const workbook = XLSX.readFile("./Subject list.xlsx");
+//   const sheetName = workbook.SheetNames[9];
+//   const subjectData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+//   console.log(subjectData); // Optional: Debug the data
+
+//   for (const row of subjectData) {
+//     const subjectList = (row["Subjects"] || "")
+//       .split(",")
+//       .map((sub: string) => sub.trim())
+//       .filter((sub: string) => sub.length > 0);
+
+//       console.log(subjectList)
+//     if (subjectList.length === 0) {
+//       console.warn(`Skipping invalid row: ${JSON.stringify(row)}`);
+//       continue;
+//     }
+
+//     // Find class and update subjects
+//     const existingClass = await classModel.findById("6847a0ef013f4c9143ef571c");
+//     if (!existingClass) {
+//       console.error(`❌ Class not found: 6847a0ef013f4c9143ef571c`);
+//       continue;
+//     }
+
+//     existingClass.subjects.push(subjectList[0]);
+//     await existingClass.save();
+//     console.log(`✅ Subjects updated for class: ${existingClass.name}`);
+//   }
+
+//   console.log("🎉 Subject import completed.");
+//   process.exit();
 // }
 
 app.listen(process.env.PORT,()=>{

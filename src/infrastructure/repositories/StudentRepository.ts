@@ -221,6 +221,10 @@ export class StudentRepository implements IStudentRepository {
     if (!student) {
       throw new Error("Student not found");
     }
+   
+    if(student.classId != classId){
+      throw new Error('This student is not in this class')
+    }
 
     // Initialize cceMarks if undefined
     if (!student.cceMarks) {

@@ -234,22 +234,38 @@ export class StudentController {
   }
   async addCceScore(req: Request, res: Response) {
     try {
-      const id: string = req.params.id;
+      const payload: {
+        id: string;
+        data: {
+          classId: string;
+          semester: string;
+          subjectName: string;
+          phase: string;
+          mark: number;
+        };
+      }[] = req.body;
 
-      const { classId, semester, subjectName, phase, mark } = req.body;
+      const results = [];
 
-      const student = await this.studentUsecase.addCceScore(
-        id,
-        classId,
-        semester,
-        subjectName,
-        phase,
-        mark
-      );
+      for (const { id, data } of payload) {
+        const { classId, semester, subjectName, phase, mark } = data;
+
+        const student = await this.studentUsecase.addCceScore(
+          id,
+          classId,
+          semester,
+          subjectName,
+          phase,
+          mark
+        );
+
+        results.push(student);
+      }
+
       res.status(StatusCode.OK).json({
         success: true,
-        message: "add CCE mark to student is successful",
-        data: student,
+        message: "Batch CCE marks added successfully",
+        data: results,
       });
     } catch (error: any) {
       console.error(error);

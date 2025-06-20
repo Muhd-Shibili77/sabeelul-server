@@ -245,22 +245,18 @@ export class StudentController {
         };
       }[] = req.body;
 
-      const results = [];
-
-      for (const { id, data } of payload) {
-        const { classId, semester, subjectName, phase, mark } = data;
-
-        const student = await this.studentUsecase.addCceScore(
-          id,
-          classId,
-          semester,
-          subjectName,
-          phase,
-          mark
-        );
-
-        results.push(student);
-      }
+      const results = await Promise.all(
+        payload.map(({ id, data }) =>
+          this.studentUsecase.addCceScore(
+            id,
+            data.classId,
+            data.semester,
+            data.subjectName,
+            data.phase,
+            data.mark
+          )
+        )
+      );
 
       res.status(StatusCode.OK).json({
         success: true,

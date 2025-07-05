@@ -156,20 +156,20 @@ export class ClassRepository implements IClassRepository {
     const academicYear = getCurrentAcademicYear();
     const classes = await ClassModel.find(
       {
-        "marks.academicYear": academicYear,
         isDeleted: false,
       },
       {
         _id: 1,
         name: 1,
         marks: 1,
+        penaltyMarks: 1,
       }
     ).lean();
-
     const result = classes.map((cls) => ({
       _id: cls._id,
       name: cls.name,
-      marks: cls.marks?.filter((mark) => mark.academicYear === academicYear),
+      marks: cls.marks?.filter((mark) => mark.academicYear === academicYear)||[],
+      penaltyMarks: cls.penaltyMarks?.filter((mark) => mark.academicYear === academicYear)||[],
     }));
 
     return result;

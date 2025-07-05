@@ -44,6 +44,58 @@ export class StudentController {
         .json({ success: false, message: error.message });
     }
   }
+  async fetchByLevel(req: Request, res: Response) {
+    try {
+      const level: string = req.query.level as string;
+      const className: string = req.query.class as string || "";
+      const students = await this.studentUsecase.fetchByLevel(level, className);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of students by level is successfull",
+        students,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async fetchStudentsByClass(req: Request, res: Response) {
+    try {
+      const classId: string = req.query.classId as string || '';
+      const top: number | undefined = req.query.top ? parseInt(req.query.top as string) : undefined;
+      const students = await this.studentUsecase.fetchStudentsByClass(classId, top);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of students by class is successfull",
+        students,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async fetchMentorScore(req: Request, res: Response) {
+    try {
+      const id: string = req.params.id;
+      const student = await this.studentUsecase.fetchMentorScore(id);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching mentor score is successfull",
+        students: student,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
   async addStudent(req: Request, res: Response) {
     try {
       const {
@@ -271,6 +323,22 @@ export class StudentController {
     }
   }
 
+  async fetchCCEMark(req: Request, res: Response) {
+    try {
+      const id: string = req.params.id;
+      const student = await this.studentUsecase.fetchCCEMark(id);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching profile successfull",
+        data:student,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
   async fetchProfile(req: Request, res: Response) {
     try {
       const id: string = req.params.id;
@@ -323,7 +391,7 @@ export class StudentController {
 
   async fetchByClass(req: Request, res: Response) {
     try {
-      const classId: string = req.params.id;
+      const classId: string = req.params.id || '';
       const students = await this.studentUsecase.fetchByClass(classId);
       res.status(StatusCode.OK).json({
         success: true,

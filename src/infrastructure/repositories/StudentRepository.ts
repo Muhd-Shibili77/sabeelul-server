@@ -41,9 +41,9 @@ export class StudentRepository implements IStudentRepository {
     const count = await StudentModel.countDocuments(query);
     const totalPages = Math.ceil(count / limit);
 
-      const sortCriteria:any = isClassFiltered 
-    ? { rank: 1} // Sort by rank first, then admission number
-    : { admissionNo: 1 }; // Default sort by admission number only
+    const sortCriteria: any = isClassFiltered
+      ? { rank: 1 } // Sort by rank first, then admission number
+      : { admissionNo: 1 }; // Default sort by admission number only
 
     const students = await StudentModel.find(query)
       .skip((page - 1) * limit)
@@ -56,6 +56,14 @@ export class StudentRepository implements IStudentRepository {
       ),
       totalPages: totalPages,
     };
+  }
+
+  async findByLevel(level: string, className?: string): Promise<Student[]> {
+    const students = await StudentModel.find({ isDeleted: false });
+
+    return students.map(
+      (student) => new Student(student.toObject() as Student)
+    );
   }
   async findByAdNo(admissionNo: string): Promise<Student | null> {
     const studentDoc = await StudentModel.findOne({
@@ -210,7 +218,7 @@ export class StudentRepository implements IStudentRepository {
     subjectName: string,
     phase: string,
     mark: number
-  ): Promise<{student: Student; addedMark: any}> {
+  ): Promise<{ student: Student; addedMark: any }> {
     const classDoc = await classModel.findById(classId).select("name");
     const className = classDoc?.name;
     let addedMark;
@@ -221,9 +229,9 @@ export class StudentRepository implements IStudentRepository {
     if (!student) {
       throw new Error("Student not found");
     }
-   
-    if(student.classId != classId){
-      throw new Error('This student is not in this class')
+
+    if (student.classId != classId) {
+      throw new Error("This student is not in this class");
     }
 
     // Initialize cceMarks if undefined
@@ -290,10 +298,10 @@ export class StudentRepository implements IStudentRepository {
       }
     }
 
-    return{
-      student : new Student(updatedStudent.toObject() as Student),
-      addedMark
-    } 
+    return {
+      student: new Student(updatedStudent.toObject() as Student),
+      addedMark,
+    };
   }
 
   async fetchProfile(id: string): Promise<Student> {
@@ -983,11 +991,7 @@ export class StudentRepository implements IStudentRepository {
           studentPerformanceScore: {
             $subtract: [
               {
-                $add: [
-                  "$totalExtraMark",
-                  "$totalMentorMark",
-                  "$totalCceScore",
-                ],
+                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
               },
               { $ifNull: ["$totalPenaltyMark", 0] },
             ],
@@ -1082,14 +1086,20 @@ export class StudentRepository implements IStudentRepository {
     return result || [];
   }
 
-  async findByClass(classId: string): Promise<Student[]> {
-    const students = await StudentModel.find({
-      classId,
+  async findByClass(classId: string, top?: number): Promise<Student[]> {
+    const filter: any = {
       isDeleted: false,
-    })
-      .sort({ rank: 1 })
-      .populate("classId");
+    };
 
+    if (classId) {
+      filter.classId = classId;
+    }
+
+    let query = StudentModel.find(filter).sort({ rank: 1 }).populate("classId");
+    if (top) {
+      query = query.limit(top);
+    }
+    const students = await query;
     return students.map((item) => item.toObject() as Student);
   }
 

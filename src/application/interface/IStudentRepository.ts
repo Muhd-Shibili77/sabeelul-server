@@ -3,6 +3,7 @@ import Student from "../../domain/entites/Student";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
 export interface IStudentRepository{
     fetchStudents(query:object,page:number,limit:number,isClassFiltered: boolean): Promise<{students: Student[], totalPages: number}>;
+    findByLevel(level: string,className?: string): Promise<Student[]>;
     addStudent(student: Student): Promise<Student>;
     deleteStudent(id: string): Promise<void>;
     findStudentById(id: string): Promise<Student | null>;
@@ -20,7 +21,7 @@ export interface IStudentRepository{
     countStudent():Promise<number>;
     bestPerfomerClass():Promise<Student[]>
     getBestPerformingClass():Promise<ClassPerformance[]>
-    findByClass(classId:string):Promise<Student[]>
+    findByClass(classId:string,top?: number):Promise<Student[]>
     bestPerformerOverall(): Promise<Student[]>
     getTopStudentsInClass(classId: string): Promise<Student[]>
     isExist(data:string):Promise<boolean>

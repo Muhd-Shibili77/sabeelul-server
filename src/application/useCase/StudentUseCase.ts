@@ -6,6 +6,7 @@ import { IMarkLogRepository } from "../interface/IMarkLogRepository";
 import bcrypt from "bcrypt";
 import validator from "validator";
 import ExtraMarkItem from "../../domain/entites/ExtraMarkItem";
+import { getLevelByMark } from "../../shared/utils/getLevel";
 
 interface SubjectMark {
   subjectName: string;
@@ -20,7 +21,12 @@ export class StudentUseCase {
     private markLogsRepository: IMarkLogRepository
   ) {}
 
-  async fetchStudents(query: object, page: number, limit: number,isClassFiltered: boolean = false) {
+  async fetchStudents(
+    query: object,
+    page: number,
+    limit: number,
+    isClassFiltered: boolean = false
+  ) {
     const students = await this.studentRepository.fetchStudents(
       query,
       page,
@@ -28,6 +34,182 @@ export class StudentUseCase {
       isClassFiltered
     );
     return students;
+  }
+  async fetchByLevel(level: string, className: string) {
+    const academicYear = getCurrentAcademicYear();
+    const students = await this.studentRepository.findByClass(className);
+
+    if (!students) {
+      throw new Error("Error while fetching students");
+    }
+
+    // Use Promise.all since getLevelByMark is async
+    const studentsWithMarksAndLevel = await Promise.all(
+      students.map(async (student) => {
+        let cceMarkTotal = 0;
+
+        if (student.cceMarks?.length) {
+          student.cceMarks
+            .filter((cce) => cce.academicYear === academicYear)
+            .forEach((cce) => {
+              cce.subjects?.forEach((subject) => {
+                if (subject.mark) {
+                  cceMarkTotal += Math.round(subject.mark * 0.2);
+                }
+              });
+            });
+        }
+
+        const mentorMarkTotal =
+          student.mentorMarks
+            ?.filter((m) => m.academicYear === academicYear)
+            .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+
+        const extraMarkTotal = Math.round(
+          student.extraMarks
+            ?.filter((e) => e.academicYear === academicYear)
+            .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
+        );
+
+        const penaltyMarkTotal =
+          student.penaltyMarks
+            ?.filter((p) => p.academicYear === academicYear)
+            .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
+
+        const totalMarks = Math.round(
+          cceMarkTotal +
+            mentorMarkTotal +
+            extraMarkTotal +
+            200 -
+            penaltyMarkTotal
+        );
+
+        const studentLevel = await getLevelByMark(totalMarks);
+
+        return {
+          admNo: student.admissionNo,
+          name: student.name,
+          className: (student.classId as unknown as { name: string }).name,
+          marks: totalMarks,
+          level: studentLevel,
+        };
+      })
+    );
+
+    // 🔎 Filter students matching the required level
+    const filteredStudents = studentsWithMarksAndLevel.filter(
+      (student) => student.level === level
+    );
+
+    return filteredStudents;
+  }
+  async fetchStudentsByClass(classId: string, top?: number) {
+    const academicYear = getCurrentAcademicYear();
+    const studentsData = await this.studentRepository.findByClass(classId, top);
+
+    if (!studentsData || studentsData.length === 0) {
+      throw new Error("No students found in this class.");
+    }
+
+    const students = await Promise.all(
+      studentsData.map(async (student) => {
+        let cceMarkTotal = 0;
+        const subjectMarkMap: Record<string, number> = {}; // to accumulate marks by subject
+
+        if (student.cceMarks?.length) {
+          student.cceMarks
+            .filter((cce) => cce.academicYear === academicYear)
+            .forEach((cce) => {
+              cce.subjects?.forEach((subject) => {
+                if (subject.mark) {
+                  const calculatedMark = Math.round(subject.mark * 0.2);
+                  cceMarkTotal += calculatedMark;
+
+                  const subjectKey = subject.subjectName.toLowerCase(); // Normalize subject key
+                  subjectMarkMap[subjectKey] =
+                    (subjectMarkMap[subjectKey] || 0) + subject.mark;
+                }
+              });
+            });
+        }
+
+        // Convert accumulated map to array
+        const subjectWiseMarks = Object.entries(subjectMarkMap).map(
+          ([subjectName, mark]) => ({
+            subjectName,
+            mark,
+          })
+        );
+
+        const mentorMarkTotal =
+          student.mentorMarks
+            ?.filter((m) => m.academicYear === academicYear)
+            .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+
+        const extraMarkTotal = Math.round(
+          student.extraMarks
+            ?.filter((e) => e.academicYear === academicYear)
+            .reduce((sum, e) => sum + (e.mark || 0), 0) || 0
+        );
+
+        const penaltyMarkTotal =
+          student.penaltyMarks
+            ?.filter((p) => p.academicYear === academicYear)
+            .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
+
+        const totalMarks = Math.round(
+          cceMarkTotal +
+            mentorMarkTotal +
+            extraMarkTotal +
+            200 -
+            penaltyMarkTotal
+        );
+
+        const studentLevel = await getLevelByMark(totalMarks);
+
+        return {
+          _id:student._id,
+          admNo: student.admissionNo,
+          name: student.name,
+          className: (student.classId as unknown as { name: string }).name,
+          phone: student.phone,
+          level: studentLevel,
+          score: totalMarks,
+          subjectWiseMarks, // ✅ Now contains totals per subject
+        };
+      })
+    );
+
+    return students;
+  }
+
+  async fetchMentorScore(id: string) {
+    if (!id) {
+      throw new Error("Class ID is required.");
+    }
+    const academicYear = getCurrentAcademicYear();
+    const students = await this.studentRepository.findByClass(id);
+    if (!students || students.length === 0) {
+      throw new Error("No students found in this class.");
+    }
+
+    const studentsWithMentorScores = students
+      .map((student) => {
+        const totalMentorMark =
+          student.mentorMarks
+            ?.filter((mark) => mark.academicYear === academicYear)
+            .reduce((sum, mark) => sum + (mark.mark || 0), 0) || 0;
+
+        return {
+          admNo: student.admissionNo,
+          name: student.name,
+          className: (student.classId as unknown as { name: string }).name,
+          marks: totalMentorMark,
+        };
+      })
+      .sort((a, b) => b.marks - a.marks); // Descending order
+
+    return studentsWithMentorScores;
   }
 
   async addStudent(
@@ -198,7 +380,7 @@ export class StudentUseCase {
     const student = await this.studentRepository.findByAdNo(admissionNo);
 
     if (!student) {
-      throw new Error("student not found");
+      throw new Error("student not founds3");
     }
 
     return student;
@@ -462,6 +644,61 @@ export class StudentUseCase {
     }
 
     return student;
+  }
+
+  async fetchCCEMark(id: string) {
+    if (!id) {
+      throw new Error("id is required");
+    }
+
+    const academicYear = getCurrentAcademicYear();
+    const student = await this.studentRepository.findStudentById(id);
+
+    if (!student) {
+      throw new Error("student not exist");
+    }
+
+    let cceMarkTotal = 0;
+    const subjectSemesterMap: Record<string, number> = {}; // key: subject|semester
+
+    if (student.cceMarks?.length) {
+      student.cceMarks
+        .filter((cce) => cce.academicYear === academicYear)
+        .forEach((cce) => {
+          cce.subjects?.forEach((subject) => {
+            if (subject.mark) {
+              // Add to weighted total
+              cceMarkTotal += Math.round(subject.mark);
+
+              // Create a key for subject + semester
+              const key = `${subject.subjectName.toLowerCase()}|${
+                cce.semester
+              }`;
+              subjectSemesterMap[key] =
+                (subjectSemesterMap[key] || 0) + subject.mark;
+            }
+          });
+        });
+    }
+
+    const subjectWise = Object.entries(subjectSemesterMap).map(
+      ([key, mark]) => {
+        const [subjectName, semester] = key.split("|");
+        return {
+          subjectName,
+          semester,
+          totalMark: mark,
+        };
+      }
+    );
+
+    return {
+      admNo: student.admissionNo,
+      name: student.name,
+      className: (student.classId as any)?.name || "",
+      totalCCE: cceMarkTotal,
+      subjectWise,
+    };
   }
 
   async fetchProfile(id: string) {

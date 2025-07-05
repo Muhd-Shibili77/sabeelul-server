@@ -1,5 +1,5 @@
 class Student {
-  public readonly id!: string;
+  public readonly _id!: string;
   public admissionNo!: string;
   public rank!: number;
   public name!: string;

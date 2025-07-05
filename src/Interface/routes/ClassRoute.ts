@@ -10,6 +10,12 @@ const classUseCase = new ClassUseCase(classRepository);
 const classController = new ClassController(classUseCase);
 const router = Router();
 
+
+router.route('/leaderboard')
+.get(authenticateJWT(['Admin','Teacher']),async (req: Request, res: Response) => {
+    await classController.fetchLeaderboard(req, res)
+})
+
 router.route('/')
 .get(async (req: Request, res: Response) => {
     await classController.fetchClass(req, res)
@@ -57,6 +63,11 @@ router.route('/subject/:id')
 .delete(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
     await classController.deleteSubject(req, res)
 })
+.get(authenticateJWT(['Admin']),async (req: Request, res: Response) => {
+    await classController.getSubjects(req, res)
+})
+
+
 
 
 export default router;

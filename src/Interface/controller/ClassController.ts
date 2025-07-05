@@ -21,7 +21,7 @@ export class ClassController {
       const result = await this.classUseCase.fetchClasses(query, page, limit);
       res.status(StatusCode.OK).json({
         success: true,
-        message: "Fetching of classes is successfull",
+        message: "Fetching of classes is successfully",
         classes: result.classes,
         totalPages: result.totalPages ?? undefined,
       });
@@ -262,6 +262,39 @@ export class ClassController {
         success: true,
         message: "Deleting of penalty score is successfull",
         data: updatedClass,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async fetchLeaderboard(req: Request, res: Response) {
+    try {
+      const result = await this.classUseCase.fetchLeaderboard();
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of leaderboard is successfull",
+        data: result
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async getSubjects(req:Request,res:Response){
+    try {
+      const classId: string = req.params.id;
+      const result = await this.classUseCase.fetchSubjects(classId);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of subjects is successfull",
+        subjects: result
       });
     } catch (error: any) {
       console.error(error);

@@ -125,7 +125,7 @@ export class StudentUseCase {
                   const calculatedMark = Math.round(subject.mark * 0.2);
                   cceMarkTotal += calculatedMark;
 
-                  const subjectKey = subject.subjectName.toLowerCase(); // Normalize subject key
+                  const subjectKey = subject.subjectName // Normalize subject key
                   subjectMarkMap[subjectKey] =
                     (subjectMarkMap[subjectKey] || 0) + subject.mark;
                 }
@@ -671,7 +671,7 @@ export class StudentUseCase {
               cceMarkTotal += Math.round(subject.mark);
 
               // Create a key for subject + semester
-              const key = `${subject.subjectName.toLowerCase()}|${
+              const key = `${subject.subjectName}|${
                 cce.semester
               }`;
               subjectSemesterMap[key] =

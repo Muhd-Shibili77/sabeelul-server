@@ -695,6 +695,7 @@ export class StudentUseCase {
     return {
       admNo: student.admissionNo,
       name: student.name,
+      profileImage: student.profileImage,
       className: (student.classId as any)?.name || "",
       totalCCE: cceMarkTotal,
       subjectWise,

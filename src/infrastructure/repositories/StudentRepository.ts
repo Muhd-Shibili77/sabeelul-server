@@ -23,7 +23,7 @@ export class StudentRepository implements IStudentRepository {
     return new Student(updatedStudent.toObject() as Student);
   }
   async findStudentById(id: string): Promise<Student | null> {
-    const student = await StudentModel.findOne({ _id: id, isDeleted: false });
+    const student = await StudentModel.findOne({ _id: id, isDeleted: false }).populate("classId name");
     if (!student) {
       return null;
     }

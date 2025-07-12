@@ -125,7 +125,7 @@ export class StudentUseCase {
                   const calculatedMark = Math.round(subject.mark * 0.2);
                   cceMarkTotal += calculatedMark;
 
-                  const subjectKey = subject.subjectName // Normalize subject key
+                  const subjectKey = subject.subjectName; // Normalize subject key
                   subjectMarkMap[subjectKey] =
                     (subjectMarkMap[subjectKey] || 0) + subject.mark;
                 }
@@ -168,7 +168,7 @@ export class StudentUseCase {
         const studentLevel = await getLevelByMark(totalMarks);
 
         return {
-          _id:student._id,
+          _id: student._id,
           admNo: student.admissionNo,
           name: student.name,
           className: (student.classId as unknown as { name: string }).name,
@@ -187,27 +187,51 @@ export class StudentUseCase {
     if (!id) {
       throw new Error("Class ID is required.");
     }
+
     const academicYear = getCurrentAcademicYear();
     const students = await this.studentRepository.findByClass(id);
+
     if (!students || students.length === 0) {
       throw new Error("No students found in this class.");
     }
 
+    const expectedSemesters = ["Rabee Semester", "Ramadan Semester"]; // add more if needed
+
     const studentsWithMentorScores = students
       .map((student) => {
-        const totalMentorMark =
-          student.mentorMarks
-            ?.filter((mark) => mark.academicYear === academicYear)
-            .reduce((sum, mark) => sum + (mark.mark || 0), 0) || 0;
+        const mentorMarks =
+          student.mentorMarks?.filter(
+            (mark) => mark.academicYear === academicYear
+          ) || [];
+
+        // Total marks
+        const totalMentorMark = mentorMarks.reduce(
+          (sum, mark) => sum + (mark.mark || 0),
+          0
+        );
+
+        // Initialize all semester marks with 0
+        const semesterMarks: Record<string, number> = {};
+        expectedSemesters.forEach((sem) => {
+          semesterMarks[sem] = 0;
+        });
+
+        // Fill in actual semester marks
+        mentorMarks.forEach((mark) => {
+          if (mark.semester && expectedSemesters.includes(mark.semester)) {
+            semesterMarks[mark.semester] += mark.mark || 0;
+          }
+        });
 
         return {
           admNo: student.admissionNo,
           name: student.name,
           className: (student.classId as unknown as { name: string }).name,
           marks: totalMentorMark,
+          ...semesterMarks,
         };
       })
-      .sort((a, b) => b.marks - a.marks); // Descending order
+      .sort((a, b) => b.marks - a.marks);
 
     return studentsWithMentorScores;
   }
@@ -671,9 +695,7 @@ export class StudentUseCase {
               cceMarkTotal += Math.round(subject.mark);
 
               // Create a key for subject + semester
-              const key = `${subject.subjectName}|${
-                cce.semester
-              }`;
+              const key = `${subject.subjectName}|${cce.semester}`;
               subjectSemesterMap[key] =
                 (subjectSemesterMap[key] || 0) + subject.mark;
             }

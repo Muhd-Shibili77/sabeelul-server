@@ -23,7 +23,10 @@ export class StudentRepository implements IStudentRepository {
     return new Student(updatedStudent.toObject() as Student);
   }
   async findStudentById(id: string): Promise<Student | null> {
-    const student = await StudentModel.findOne({ _id: id, isDeleted: false }).populate("classId name");
+    const student = await StudentModel.findOne({
+      _id: id,
+      isDeleted: false,
+    }).populate("classId name");
     if (!student) {
       return null;
     }
@@ -221,82 +224,133 @@ export class StudentRepository implements IStudentRepository {
   ): Promise<{ student: Student; addedMark: any }> {
     const classDoc = await classModel.findById(classId).select("name");
     const className = classDoc?.name;
-    let addedMark;
-    if (!className) {
-      throw new Error("class not found");
-    }
-    const student = await StudentModel.findById(id);
-    if (!student) {
-      throw new Error("Student not found");
-    }
 
-    if (student.classId != classId) {
+    if (!className) throw new Error("Class not found");
+
+    // Fetch only needed info
+    const student = await StudentModel.findOne({ _id: id }, { classId: 1 });
+    if (!student) throw new Error("Student not found");
+
+    if (student.classId.toString() !== classId.toString()) {
       throw new Error("This student is not in this class");
     }
 
-    // Initialize cceMarks if undefined
-    if (!student.cceMarks) {
-      student.cceMarks = [];
+    // Check if the subject + phase entry already exists
+    const existing = await StudentModel.findOne({
+      _id: id,
+      cceMarks: {
+        $elemMatch: {
+          academicYear,
+          semester,
+          className,
+          subjects: {
+            $elemMatch: {
+              subjectName,
+              phase,
+            },
+          },
+        },
+      },
+    });
+
+    let updateOp;
+    let arrayFilters: any[] = [];
+
+    if (existing) {
+      // ✅ Subject phase exists — update its mark
+      updateOp = {
+        $set: {
+          "cceMarks.$[record].subjects.$[subject].mark": mark,
+        },
+      };
+      arrayFilters = [
+        {
+          "record.academicYear": academicYear,
+          "record.semester": semester,
+          "record.className": className,
+        },
+        {
+          "subject.subjectName": subjectName,
+          "subject.phase": phase,
+        },
+      ];
+    } else {
+      // ✅ Subject phase does not exist — push it into subjects array
+      const recordExists = await StudentModel.findOne({
+        _id: id,
+        cceMarks: {
+          $elemMatch: {
+            academicYear,
+            semester,
+            className,
+          },
+        },
+      });
+
+      if (recordExists) {
+        // ✅ Record exists, push into its subjects array
+        updateOp = {
+          $push: {
+            "cceMarks.$[record].subjects": {
+              subjectName,
+              phase,
+              mark,
+              date: new Date(),
+            },
+          },
+        };
+        arrayFilters = [
+          {
+            "record.academicYear": academicYear,
+            "record.semester": semester,
+            "record.className": className,
+          },
+        ];
+      } else {
+        // ✅ Entire academic record doesn't exist — push a new cceMark entry
+        updateOp = {
+          $push: {
+            cceMarks: {
+              academicYear,
+              semester,
+              className,
+              subjects: [
+                {
+                  subjectName,
+                  phase,
+                  mark,
+                  date: new Date(),
+                },
+              ],
+            },
+          },
+        };
+      }
     }
 
-    // Find academic record
-    const academicRecord = student.cceMarks.find(
-      (record) =>
-        record.academicYear === academicYear &&
-        record.semester === semester &&
-        record.className === className
+    // Perform the atomic update
+    const updatedStudent = await StudentModel.findOneAndUpdate(
+      { _id: id },
+      updateOp,
+      {
+        arrayFilters,
+        new: true,
+      }
     );
 
-    if (academicRecord) {
-      // Try to find the subject and phase entry
-      const subjectPhaseEntry = academicRecord.subjects.find(
-        (entry) => entry.subjectName === subjectName && entry.phase === phase
-      );
+    if (!updatedStudent) throw new Error("Failed to update student record");
 
-      if (subjectPhaseEntry) {
-        // If entry exists, update the mark
-        subjectPhaseEntry.mark = mark;
-      } else {
-        // Else, push a new entry
-        academicRecord.subjects.push({
-          subjectName,
-          phase,
-          mark,
-          date: new Date(),
-        });
-      }
-    } else {
-      // If academicYear record doesn't exist, create it
-      student.cceMarks.push({
-        academicYear,
-        semester,
-        className,
-        subjects: [
-          {
-            subjectName,
-            phase,
-            mark,
-            date: new Date(),
-          },
-        ],
-      });
-    }
+    // Get the added mark entry to return
+    const updatedRecord = updatedStudent.cceMarks?.find(
+      (r) =>
+        r.academicYear === academicYear &&
+        r.semester === semester &&
+        r.className === className
+    );
 
-    const updatedStudent = await student.save();
-    if (updatedStudent.cceMarks) {
-      const academicRecord = updatedStudent.cceMarks.find(
-        (record) =>
-          record.academicYear === academicYear &&
-          record.semester === semester &&
-          record.className === className
-      );
-
-      if (academicRecord) {
-        addedMark = academicRecord.subjects.find(
-          (entry) => entry.subjectName === subjectName && entry.phase === phase
-        );
-      }
-    }
+    const addedMark = updatedRecord?.subjects.find(
+      (s) => s.subjectName === subjectName && s.phase === phase
+    );
 
     return {
       student: new Student(updatedStudent.toObject() as Student),

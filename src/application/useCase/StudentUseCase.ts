@@ -114,21 +114,36 @@ export class StudentUseCase {
     const students = await Promise.all(
       studentsData.map(async (student) => {
         let cceMarkTotal = 0;
-        const subjectMarkMap: Record<string, number> = {}; // to accumulate marks by subject
+        const subjectMarkMap: Record<string, number> = {}; // overall subject total
+        const semesterWiseMarksMap: Record<string, Record<string, number>> = {}; // semister → subject → total
 
         if (student.cceMarks?.length) {
           student.cceMarks
             .filter((cce) => cce.academicYear === academicYear)
             .forEach((cce) => {
-              cce.subjects?.forEach((subject) => {
-                if (subject.mark) {
-                  const calculatedMark = Math.round(subject.mark * 0.2);
-                  cceMarkTotal += calculatedMark;
+              const semesterName = cce.semester; // e.g., "Rabee Semister"
 
-                  const subjectKey = subject.subjectName; // Normalize subject key
-                  subjectMarkMap[subjectKey] =
-                    (subjectMarkMap[subjectKey] || 0) + subject.mark;
-                }
+              if (!semesterWiseMarksMap[semesterName]) {
+                semesterWiseMarksMap[semesterName] = {};
+              }
+
+              cce.subjects?.forEach((subject) => {
+                if (!subject.mark) return;
+
+                const subjectKey = subject.subjectName;
+
+                // ✅ Add to semester-wise total
+                semesterWiseMarksMap[semesterName][subjectKey] =
+                  (semesterWiseMarksMap[semesterName][subjectKey] || 0) +
+                  subject.mark;
+
+                // ✅ Add to overall subject total
+                subjectMarkMap[subjectKey] =
+                  (subjectMarkMap[subjectKey] || 0) + subject.mark;
+
+                // ✅ Add to cce total (with 0.2 weight)
+                const calculatedMark = Math.round(subject.mark * 0.2);
+                cceMarkTotal += calculatedMark;
               });
             });
         }
@@ -175,7 +190,8 @@ export class StudentUseCase {
           phone: student.phone,
           level: studentLevel,
           score: totalMarks,
-          subjectWiseMarks, // ✅ Now contains totals per subject
+          subjectWiseMarks, // ✅ existing subject totals
+          semesterWiseSubjectMarks: semesterWiseMarksMap, // ✅ new semester-wise subject totals
         };
       })
     );

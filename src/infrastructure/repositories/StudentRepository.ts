@@ -333,17 +333,16 @@ export class StudentRepository implements IStudentRepository {
 
     if (!updatedStudent) throw new Error("Failed to update student record");
 
+    // Get the added mark entry to return
     const updatedRecord = updatedStudent.cceMarks?.find(
-      (r: any) =>
-        normalize(r.academicYear) === academicYearNorm &&
-        normalize(r.semester) === semesterNorm &&
-        normalize(r.className) === classNameNorm
+      (r) =>
+        r.academicYear === academicYear &&
+        r.semester === semester &&
+        r.className === className
     );
 
     const addedMark = updatedRecord?.subjects.find(
-      (s: any) =>
-        normalize(s.subjectName) === normalize(subjectName) &&
-        normalize(s.phase) === normalize(phase)
+      (s) => s.subjectName === subjectName && s.phase === phase
     );
 
     return {
@@ -1202,7 +1201,7 @@ export class StudentRepository implements IStudentRepository {
       filter.classId = classId;
     }
 
-    let query = StudentModel.find(filter).sort({rank:1}).populate("classId");
+    let query = StudentModel.find(filter).sort({ rank: 1 }).populate("classId");
     if (top) {
       query = query.limit(top);
     }

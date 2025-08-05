@@ -11,7 +11,7 @@ import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 import path from "path";
-
+import cleanAllStudentsCCE from "./shared/utils/ClearDuplicate";
 
 
 import ThemeModel from "./infrastructure/models/ThemeModel";
@@ -43,6 +43,10 @@ app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
 app.get("/", (req, res) => {
   res.send("server is working");
+});
+app.get("/clean", (req, res) => {
+  res.send("Cleaning....");
+  // cleanAllStudentsCCE()
 });
 
 // async function addTheme(){

@@ -222,73 +222,66 @@ export class StudentRepository implements IStudentRepository {
     phase: string,
     mark: number
   ): Promise<{ student: Student; addedMark: any }> {
+    // Helper to normalize strings
+    const normalize = (val: string) => val.trim().toLowerCase();
+
+    // Fetch class name from DB and normalize
     const classDoc = await classModel.findById(classId).select("name");
-    const className = classDoc?.name;
+    const className = classDoc?.name?.trim();
 
     if (!className) throw new Error("Class not found");
 
-    // Fetch only needed info
-    const student = await StudentModel.findOne({ _id: id }, { classId: 1 });
-    if (!student) throw new Error("Student not found");
+    const academicYearNorm = normalize(academicYear);
+    const semesterNorm = normalize(semester);
+    const classNameNorm = normalize(className);
 
+    // Validate student and ensure student is in the class
+    const student = await StudentModel.findById(id).select("classId cceMarks");
+
+    if (!student) throw new Error("Student not found");
     if (student.classId.toString() !== classId.toString()) {
       throw new Error("This student is not in this class");
     }
 
-    // Check if the subject + phase entry already exists
-    const existing = await StudentModel.findOne({
-      _id: id,
-      cceMarks: {
-        $elemMatch: {
-          academicYear,
-          semester,
-          className,
-          subjects: {
-            $elemMatch: {
-              subjectName,
-              phase,
-            },
-          },
-        },
-      },
-    });
+    // Normalize student records to check for existing entry manually
+    const existingRecord = student.cceMarks?.find(
+      (record: any) =>
+        normalize(record.academicYear) === academicYearNorm &&
+        normalize(record.semester) === semesterNorm &&
+        normalize(record.className) === classNameNorm
+    );
 
     let updateOp;
     let arrayFilters: any[] = [];
 
-    if (existing) {
-      // ✅ Subject phase exists — update its mark
-      updateOp = {
-        $set: {
-          "cceMarks.$[record].subjects.$[subject].mark": mark,
-        },
-      };
-      arrayFilters = [
-        {
-          "record.academicYear": academicYear,
-          "record.semester": semester,
-          "record.className": className,
-        },
-        {
-          "subject.subjectName": subjectName,
-          "subject.phase": phase,
-        },
-      ];
-    } else {
-      // ✅ Subject phase does not exist — push it into subjects array
-      const recordExists = await StudentModel.findOne({
-        _id: id,
-        cceMarks: {
-          $elemMatch: {
-            academicYear,
-            semester,
-            className,
-          },
-        },
-      });
+    if (existingRecord) {
+      // Check if subject + phase already exists
+      const subjectExists = existingRecord.subjects?.some(
+        (sub: any) =>
+          normalize(sub.subjectName) === normalize(subjectName) &&
+          normalize(sub.phase) === normalize(phase)
+      );
 
-      if (recordExists) {
-        // ✅ Record exists, push into its subjects array
+      if (subjectExists) {
+        // ✅ Update existing mark
+        updateOp = {
+          $set: {
+            "cceMarks.$[record].subjects.$[subject].mark": mark,
+          },
+        };
+        arrayFilters = [
+          {
+            "record.academicYear": academicYear,
+            "record.semester": semester,
+            "record.className": className,
+          },
+          {
+            "subject.subjectName": subjectName,
+            "subject.phase": phase,
+          },
+        ];
+      } else {
+        // ✅ Push new subject entry to existing record
         updateOp = {
           $push: {
             "cceMarks.$[record].subjects": {
@@ -306,29 +299,29 @@ export class StudentRepository implements IStudentRepository {
             "record.className": className,
           },
         ];
-      } else {
-        // ✅ Entire academic record doesn't exist — push a new cceMark entry
-        updateOp = {
-          $push: {
-            cceMarks: {
-              academicYear,
-              semester,
-              className,
-              subjects: [
-                {
-                  subjectName,
-                  phase,
-                  mark,
-                  date: new Date(),
-                },
-              ],
-            },
-          },
-        };
       }
+    } else {
+      // ✅ No record exists for this academicYear + semester + className
+      updateOp = {
+        $push: {
+          cceMarks: {
+            academicYear,
+            semester,
+            className,
+            subjects: [
+              {
+                subjectName,
+                phase,
+                mark,
+                date: new Date(),
+              },
+            ],
+          },
+        },
+      };
     }
 
-    // Perform the atomic update
+    // Apply the update
     const updatedStudent = await StudentModel.findOneAndUpdate(
       { _id: id },
       updateOp,
@@ -340,16 +333,17 @@ export class StudentRepository implements IStudentRepository {
 
     if (!updatedStudent) throw new Error("Failed to update student record");
 
-    // Get the added mark entry to return
     const updatedRecord = updatedStudent.cceMarks?.find(
-      (r) =>
-        r.academicYear === academicYear &&
-        r.semester === semester &&
-        r.className === className
+      (r: any) =>
+        normalize(r.academicYear) === academicYearNorm &&
+        normalize(r.semester) === semesterNorm &&
+        normalize(r.className) === classNameNorm
     );
 
     const addedMark = updatedRecord?.subjects.find(
-      (s) => s.subjectName === subjectName && s.phase === phase
+      (s: any) =>
+        normalize(s.subjectName) === normalize(subjectName) &&
+        normalize(s.phase) === normalize(phase)
     );
 
     return {

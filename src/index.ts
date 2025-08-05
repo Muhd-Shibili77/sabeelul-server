@@ -11,7 +11,7 @@ import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 import path from "path";
-import cleanAllStudentsCCE from "./shared/utils/ClearDuplicate";
+import cleanAllStudentsCCE from "./shared/utils/clearRepeatCCe";
 
 
 import ThemeModel from "./infrastructure/models/ThemeModel";

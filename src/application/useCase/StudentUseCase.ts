@@ -7,6 +7,7 @@ import bcrypt from "bcrypt";
 import validator from "validator";
 import ExtraMarkItem from "../../domain/entites/ExtraMarkItem";
 import { getLevelByMark } from "../../shared/utils/getLevel";
+import classModel from "../../infrastructure/models/ClassModel";
 
 interface SubjectMark {
   subjectName: string;
@@ -37,16 +38,33 @@ export class StudentUseCase {
   }
   async fetchByLevel(level: string, className: string) {
     const academicYear = getCurrentAcademicYear();
-    const students = await this.studentRepository.findByClass(className);
+    const students = className
+      ? await this.studentRepository.findByClass(className)
+      : await this.studentRepository.findAll();
 
-    if (!students) {
+    if (!students || students.length === 0) {
       throw new Error("Error while fetching students");
     }
 
     // Use Promise.all since getLevelByMark is async
     const studentsWithMarksAndLevel = await Promise.all(
       students.map(async (student) => {
-        let cceMarkTotal = 0;
+        const studentClassId =
+          className || (student.classId as unknown as { _id: string })._id;
+        const classData = await classModel.findById(studentClassId).lean();
+
+        if (
+          !classData ||
+          !classData.subjects ||
+          classData.subjects.length === 0
+        ) {
+          throw new Error(`No subjects found for class: ${studentClassId}`);
+        }
+
+        const totalSubjects = classData.subjects.length;
+        const totalMaxCCE = 100 + (totalSubjects - 1) * 30;
+
+        let scoredCCE = 0;
 
         if (student.cceMarks?.length) {
           student.cceMarks
@@ -54,11 +72,12 @@ export class StudentUseCase {
             .forEach((cce) => {
               cce.subjects?.forEach((subject) => {
                 if (subject.mark) {
-                  cceMarkTotal += Math.round(subject.mark * 0.2);
+                  scoredCCE += subject.mark
                 }
               });
             });
         }
+        const cceMarkTotal = Math.round((scoredCCE / totalMaxCCE) * 100);
 
         const mentorMarkTotal =
           student.mentorMarks
@@ -96,16 +115,18 @@ export class StudentUseCase {
       })
     );
 
-    // 🔎 Filter students matching the required level
-    const filteredStudents = studentsWithMarksAndLevel.filter(
-      (student) => student.level === level
-    );
+    // ✅ Filter by level and sort by marks descending
+    const filteredStudents = studentsWithMarksAndLevel
+      .filter((student) => student.level === level)
+      .sort((a, b) => b.marks - a.marks); // sort descending
 
     return filteredStudents;
   }
   async fetchStudentsByClass(classId: string, top?: number) {
     const academicYear = getCurrentAcademicYear();
-    const studentsData = await this.studentRepository.findByClass(classId, top);
+    const studentsData = classId
+      ? await this.studentRepository.findByClass(classId, top)
+      : await this.studentRepository.findAll();
 
     if (!studentsData || studentsData.length === 0) {
       throw new Error("No students found in this class.");
@@ -113,15 +134,31 @@ export class StudentUseCase {
 
     const students = await Promise.all(
       studentsData.map(async (student) => {
-        let cceMarkTotal = 0;
-        const subjectMarkMap: Record<string, number> = {}; // overall subject total
-        const semesterWiseMarksMap: Record<string, Record<string, number>> = {}; // semister → subject → total
+        // Get student class data individually if classId is empty
+        const studentClassId =
+          classId || (student.classId as unknown as { _id: string })._id;
+        const classData = await classModel.findById(studentClassId).lean();
+
+        if (
+          !classData ||
+          !classData.subjects ||
+          classData.subjects.length === 0
+        ) {
+          throw new Error(`No subjects found for class: ${studentClassId}`);
+        }
+
+        const totalSubjects = classData.subjects.length;
+        const totalMaxCCE = 100 + (totalSubjects - 1) * 30;
+
+        let scoredCCE = 0;
+        const subjectMarkMap: Record<string, number> = {};
+        const semesterWiseMarksMap: Record<string, Record<string, number>> = {};
 
         if (student.cceMarks?.length) {
           student.cceMarks
             .filter((cce) => cce.academicYear === academicYear)
             .forEach((cce) => {
-              const semesterName = cce.semester; // e.g., "Rabee Semister"
+              const semesterName = cce.semester;
 
               if (!semesterWiseMarksMap[semesterName]) {
                 semesterWiseMarksMap[semesterName] = {};
@@ -132,23 +169,20 @@ export class StudentUseCase {
 
                 const subjectKey = subject.subjectName;
 
-                // ✅ Add to semester-wise total
                 semesterWiseMarksMap[semesterName][subjectKey] =
                   (semesterWiseMarksMap[semesterName][subjectKey] || 0) +
                   subject.mark;
 
-                // ✅ Add to overall subject total
                 subjectMarkMap[subjectKey] =
                   (subjectMarkMap[subjectKey] || 0) + subject.mark;
 
-                // ✅ Add to cce total (with 0.2 weight)
-                const calculatedMark = Math.round(subject.mark * 0.2);
-                cceMarkTotal += calculatedMark;
+                scoredCCE += subject.mark;
               });
             });
         }
 
-        // Convert accumulated map to array
+        const cceMarkTotal = Math.round((scoredCCE / totalMaxCCE) * 100);
+
         const subjectWiseMarks = Object.entries(subjectMarkMap).map(
           ([subjectName, mark]) => ({
             subjectName,
@@ -190,13 +224,16 @@ export class StudentUseCase {
           phone: student.phone,
           level: studentLevel,
           score: totalMarks,
-          subjectWiseMarks, // ✅ existing subject totals
-          semesterWiseSubjectMarks: semesterWiseMarksMap, // ✅ new semester-wise subject totals
+          subjectWiseMarks,
+          semesterWiseSubjectMarks: semesterWiseMarksMap,
         };
       })
     );
+    // Sort by total score descending
+    students.sort((a, b) => b.score - a.score);
 
-    return students;
+    const sortedStudents = top ? students.slice(0, top) : students;
+    return sortedStudents;
   }
 
   async fetchMentorScore(id: string) {

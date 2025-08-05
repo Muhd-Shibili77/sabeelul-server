@@ -375,7 +375,62 @@ export class StudentRepository implements IStudentRepository {
         },
       },
       {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      {
+        $unwind: "$classInfo",
+      },
+      {
         $addFields: {
+          totalSubjects: { $size: "$classInfo.subjects" },
+          totalMaxMarks: {
+            $add: [
+              100,
+              {
+                $multiply: [
+                  { $subtract: [{ $size: "$classInfo.subjects" }, 1] },
+                  30,
+                ],
+              },
+            ],
+          },
+          scoredMarks: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$cceMarks",
+                    as: "cce",
+                    cond: { $eq: ["$$cce.academicYear", academicYear] },
+                  },
+                },
+                as: "ccef",
+                in: {
+                  $sum: "$$ccef.subjects.mark",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalCceScore: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$scoredMarks", "$totalMaxMarks"] },
+                  100,
+                ],
+              },
+              0,
+            ],
+          },
           totalExtraMark: {
             $sum: {
               $map: {
@@ -406,31 +461,6 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
-          totalCceScore: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$cceMarks",
-                    as: "cce",
-                    cond: { $eq: ["$$cce.academicYear", academicYear] },
-                  },
-                },
-                as: "ccef",
-                in: {
-                  $sum: {
-                    $map: {
-                      input: "$$ccef.subjects",
-                      as: "sub",
-                      in: {
-                        $multiply: ["$$sub.mark", 0.2],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
           totalPenaltyMark: {
             $sum: {
               $map: {
@@ -455,7 +485,7 @@ export class StudentRepository implements IStudentRepository {
               {
                 $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
               },
-              "$totalPenaltyMark",
+              { $ifNull: ["$totalPenaltyMark", 0] },
             ],
           },
         },
@@ -473,21 +503,10 @@ export class StudentRepository implements IStudentRepository {
         $replaceRoot: { newRoot: "$bestStudent" },
       },
       {
-        $lookup: {
-          from: "classes", // replace with actual class collection name
-          localField: "classId",
-          foreignField: "_id",
-          as: "classId",
-        },
-      },
-      {
-        $unwind: "$classId",
-      },
-      {
         $project: {
           name: 1,
           performanceScore: 1,
-          classId: 1,
+          classId: "$classInfo",
         },
       },
     ];
@@ -685,7 +704,63 @@ export class StudentRepository implements IStudentRepository {
         },
       },
       {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      {
+        $unwind: "$classInfo",
+      },
+      {
         $addFields: {
+          totalSubjects: { $size: "$classInfo.subjects" },
+        },
+      },
+      {
+        $addFields: {
+          totalMaxMarks: {
+            $add: [
+              100,
+              {
+                $multiply: [{ $subtract: ["$totalSubjects", 1] }, 30],
+              },
+            ],
+          },
+          scoredMarks: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$cceMarks",
+                    as: "cce",
+                    cond: { $eq: ["$$cce.academicYear", academicYear] },
+                  },
+                },
+                as: "ccef",
+                in: {
+                  $sum: "$$ccef.subjects.mark",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalCceScore: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$scoredMarks", "$totalMaxMarks"] },
+                  100,
+                ],
+              },
+              0,
+            ],
+          },
           totalExtraMark: {
             $sum: {
               $map: {
@@ -713,31 +788,6 @@ export class StudentRepository implements IStudentRepository {
                 },
                 as: "mmf",
                 in: "$$mmf.mark",
-              },
-            },
-          },
-          totalCceScore: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$cceMarks",
-                    as: "cce",
-                    cond: { $eq: ["$$cce.academicYear", academicYear] },
-                  },
-                },
-                as: "ccef",
-                in: {
-                  $sum: {
-                    $map: {
-                      input: "$$ccef.subjects",
-                      as: "sub",
-                      in: {
-                        $multiply: ["$$sub.mark", 0.2],
-                      },
-                    },
-                  },
-                },
               },
             },
           },
@@ -777,22 +827,11 @@ export class StudentRepository implements IStudentRepository {
         $limit: 10,
       },
       {
-        $lookup: {
-          from: "classes",
-          localField: "classId",
-          foreignField: "_id",
-          as: "classId",
-        },
-      },
-      {
-        $unwind: "$classId",
-      },
-      {
         $project: {
           name: 1,
           performanceScore: 1,
           profileImage: 1,
-          classId: 1,
+          classId: "$classInfo",
         },
       },
     ];
@@ -812,7 +851,63 @@ export class StudentRepository implements IStudentRepository {
         },
       },
       {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      {
+        $unwind: "$classInfo",
+      },
+      {
         $addFields: {
+          totalSubjects: { $size: "$classInfo.subjects" },
+        },
+      },
+      {
+        $addFields: {
+          totalMaxMarks: {
+            $add: [
+              100,
+              {
+                $multiply: [{ $subtract: ["$totalSubjects", 1] }, 30],
+              },
+            ],
+          },
+          scoredMarks: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$cceMarks",
+                    as: "cce",
+                    cond: { $eq: ["$$cce.academicYear", academicYear] },
+                  },
+                },
+                as: "ccef",
+                in: {
+                  $sum: "$$ccef.subjects.mark",
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          totalCceScore: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$scoredMarks", "$totalMaxMarks"] },
+                  100,
+                ],
+              },
+              0,
+            ],
+          },
           totalExtraMark: {
             $sum: {
               $map: {
@@ -840,31 +935,6 @@ export class StudentRepository implements IStudentRepository {
                 },
                 as: "mmf",
                 in: "$$mmf.mark",
-              },
-            },
-          },
-          totalCceScore: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$cceMarks",
-                    as: "cce",
-                    cond: { $eq: ["$$cce.academicYear", academicYear] },
-                  },
-                },
-                as: "ccef",
-                in: {
-                  $sum: {
-                    $map: {
-                      input: "$$ccef.subjects",
-                      as: "sub",
-                      in: {
-                        $multiply: ["$$sub.mark", 0.2],
-                      },
-                    },
-                  },
-                },
               },
             },
           },
@@ -904,22 +974,11 @@ export class StudentRepository implements IStudentRepository {
         $limit: 10,
       },
       {
-        $lookup: {
-          from: "classes",
-          localField: "classId",
-          foreignField: "_id",
-          as: "classId",
-        },
-      },
-      {
-        $unwind: "$classId",
-      },
-      {
         $project: {
           name: 1,
           performanceScore: 1,
           profileImage: 1,
-          classId: 1,
+          classId: "$classInfo",
         },
       },
     ];
@@ -1143,10 +1202,18 @@ export class StudentRepository implements IStudentRepository {
       filter.classId = classId;
     }
 
-    let query = StudentModel.find(filter).sort({ rank: 1 }).populate("classId");
+    let query = StudentModel.find(filter).sort({rank:1}).populate("classId");
     if (top) {
       query = query.limit(top);
     }
+    const students = await query;
+    return students.map((item) => item.toObject() as Student);
+  }
+  async findAll(): Promise<Student[]> {
+    const filter: any = {
+      isDeleted: false,
+    };
+    let query = StudentModel.find(filter).populate("classId");
     const students = await query;
     return students.map((item) => item.toObject() as Student);
   }

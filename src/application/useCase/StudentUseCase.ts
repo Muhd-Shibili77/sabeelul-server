@@ -805,6 +805,29 @@ export class StudentUseCase {
       throw new Error("student is deleted");
     }
     const academicYear = getCurrentAcademicYear();
+    const studentClassId = (student.classId as unknown as { _id: string })._id;
+    const classData = await classModel.findById(studentClassId);
+    if (!classData || !classData.subjects || classData.subjects.length === 0) {
+      throw new Error(`No subjects found for class: ${studentClassId}`);
+    }
+
+    const totalSubjects = classData.subjects.length;
+    const totalMaxCCE = 100 + (totalSubjects - 1) * 30;
+
+    let scoredCCE = 0;
+
+    if (student.cceMarks?.length) {
+      student.cceMarks
+        .filter((cce) => cce.academicYear === academicYear)
+        .forEach((cce) => {
+          cce.subjects?.forEach((subject) => {
+            if (subject.mark) {
+              scoredCCE += subject.mark;
+            }
+          });
+        });
+    }
+    const cceMarkTotal = Math.round((scoredCCE / totalMaxCCE) * 100);
 
     // Filter extraMarks by academic year and find latest (assuming order is not guaranteed)
     const filteredExtraMarks = student.extraMarks
@@ -826,19 +849,6 @@ export class StudentUseCase {
         mark,
         date,
       };
-    }
-
-    let cceMarkTotal = 0;
-    if (student.cceMarks?.length) {
-      student.cceMarks
-        .filter((cce) => cce.academicYear === academicYear)
-        .forEach((cce) => {
-          cce.subjects?.forEach((subject) => {
-            if (subject.mark) {
-              cceMarkTotal += Math.round(subject.mark * 0.2);
-            }
-          });
-        });
     }
 
     const mentorMarkTotal =
@@ -881,8 +891,16 @@ export class StudentUseCase {
       throw new Error("student is deleted");
     }
     const academicYear = getCurrentAcademicYear();
+    const studentClassId = (student.classId as unknown as { _id: string })._id;
+    const classData = await classModel.findById(studentClassId);
+    if (!classData || !classData.subjects || classData.subjects.length === 0) {
+      throw new Error(`No subjects found for class: ${studentClassId}`);
+    }
+    const totalSubjects = classData.subjects.length;
+    const totalMaxCCE = 100 + (totalSubjects - 1) * 30;
+    let scoredCCE = 0;
 
-    let cceMarkTotal = 0;
+    
     const subjectWiseMarks: SubjectMark[] = [];
 
     if (student.cceMarks?.length) {
@@ -891,8 +909,7 @@ export class StudentUseCase {
         .forEach((cce) => {
           cce.subjects?.forEach((subject) => {
             if (subject.mark) {
-              const calculatedMark = Math.round(subject.mark * 0.2);
-              cceMarkTotal += calculatedMark;
+              scoredCCE += subject.mark;
 
               // Store individual subject marks
               subjectWiseMarks.push({
@@ -905,6 +922,7 @@ export class StudentUseCase {
           });
         });
     }
+    const cceMarkTotal = Math.round((scoredCCE / totalMaxCCE) * 100);
 
     const mentorMarkTotal =
       student.mentorMarks

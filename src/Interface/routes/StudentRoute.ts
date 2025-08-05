@@ -10,6 +10,14 @@ const studentUsecase = new StudentUseCase(studentRepository, markLogRepository);
 const studentController = new StudentController(studentUsecase);
 const router = Router();
 
+router.get(
+  "/class/:id",
+  authenticateJWT(["Admin", "Teacher"]),
+  async (req: Request, res: Response) => {
+    await studentController.fetchByClass(req, res);
+  }
+);
+
 router
   .route("/")
   .get(
@@ -127,17 +135,9 @@ router.get("/dashboard/:id", async (req: Request, res: Response) => {
 });
 router.get(
   "/performance/:id",
-  authenticateJWT(["Student",'Admin']),
+  authenticateJWT(["Student", "Admin"]),
   async (req: Request, res: Response) => {
     await studentController.performance(req, res);
-  }
-);
-
-router.get(
-  "/class/:id",
-  authenticateJWT(["Admin", "Teacher"]),
-  async (req: Request, res: Response) => {
-    await studentController.fetchByClass(req, res);
   }
 );
 

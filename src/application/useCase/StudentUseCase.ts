@@ -72,7 +72,7 @@ export class StudentUseCase {
             .forEach((cce) => {
               cce.subjects?.forEach((subject) => {
                 if (subject.mark) {
-                  scoredCCE += subject.mark
+                  scoredCCE += subject.mark;
                 }
               });
             });
@@ -686,7 +686,7 @@ export class StudentUseCase {
       );
     }
 
-    const { student, addedMark } = await this.studentRepository.addCceScore(
+    const result = await this.studentRepository.addCceScore(
       id,
       academicYear,
       semester,
@@ -695,8 +695,13 @@ export class StudentUseCase {
       phase,
       mark
     );
+    console.log("Result from addCceScore:", result);
+    const { student, addedMark } = result || {};
     if (!student) {
       throw new Error("Failed to add CCE mark to student");
+    }
+    if (!addedMark || !addedMark._id) {
+      throw new Error("Failed to get mark ID after adding CCE mark");
     }
     const logTitle = `CCE Mark - ${subjectName} (${phase}) - ${semester}`;
     if (isUpdate && addedMark?._id) {

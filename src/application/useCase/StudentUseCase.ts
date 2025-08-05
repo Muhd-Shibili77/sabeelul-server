@@ -695,7 +695,6 @@ export class StudentUseCase {
       phase,
       mark
     );
-    console.log("Result from addCceScore:", result);
     const { student, addedMark } = result || {};
     if (!student) {
       throw new Error("Failed to add CCE mark to student");

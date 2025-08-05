@@ -332,7 +332,6 @@ export class StudentRepository implements IStudentRepository {
     );
 
     if (!updatedStudent) throw new Error("Failed to update student record");
-
     // Get the added mark entry to return
     const updatedRecord = updatedStudent.cceMarks?.find(
       (r) =>
@@ -340,7 +339,6 @@ export class StudentRepository implements IStudentRepository {
         r.semester === semester &&
         r.className === className
     );
-
     const addedMark = updatedRecord?.subjects.find(
       (s) => s.subjectName === subjectName && s.phase === phase
     );

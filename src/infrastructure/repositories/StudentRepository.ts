@@ -517,6 +517,7 @@ export class StudentRepository implements IStudentRepository {
 
     const result = await StudentModel.aggregate([
       { $match: { isDeleted: false } },
+
       {
         $lookup: {
           from: "classes",
@@ -526,86 +527,56 @@ export class StudentRepository implements IStudentRepository {
         },
       },
       { $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: "$extraMarks", preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: "$mentorMarks", preserveNullAndEmptyArrays: true } },
-      { $unwind: { path: "$cceMarks", preserveNullAndEmptyArrays: true } },
-      {
-        $unwind: {
-          path: "$cceMarks.subjects",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      { $unwind: { path: "$penaltyMarks", preserveNullAndEmptyArrays: true } },
 
+      // 👇 This replaces all unwinding logic
       {
         $addFields: {
-          extraMark: {
-            $cond: [
-              { $eq: ["$extraMarks.academicYear", academicYear] },
-              { $ifNull: ["$extraMarks.mark", 0] },
-              0,
-            ],
-          },
-          mentorMark: {
-            $cond: [
-              { $eq: ["$mentorMarks.academicYear", academicYear] },
-              { $ifNull: ["$mentorMarks.mark", 0] },
-              0,
-            ],
-          },
-          cceMark: {
-            $cond: [
-              { $eq: ["$cceMarks.academicYear", academicYear] },
-              {
-                $multiply: [{ $ifNull: ["$cceMarks.subjects.mark", 0] }, 0.2],
+          totalExtraMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$extraMarks",
+                    as: "em",
+                    cond: { $eq: ["$$em.academicYear", academicYear] },
+                  },
+                },
+                as: "emf",
+                in: "$$emf.mark",
               },
-              0,
-            ],
+            },
           },
-          penaltyScore: {
-            $cond: [
-              { $eq: ["$penaltyMarks.academicYear", academicYear] },
-              { $ifNull: ["$penaltyMarks.penaltyScore", 0] },
-              0,
-            ],
+          totalPenalty: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$penaltyMarks",
+                    as: "pen",
+                    cond: { $eq: ["$$pen.academicYear", academicYear] },
+                  },
+                },
+                as: "penf",
+                in: "$$penf.penaltyScore",
+              },
+            },
           },
-        },
-      },
-
-      {
-        $group: {
-          _id: {
-            studentId: "$_id",
-            classId: "$classId",
-            className: "$classInfo.name",
-            classLogo: "$classInfo.icon",
-          },
-          totalExtraMark: { $sum: "$extraMark" },
-          totalMentorMark: { $sum: "$mentorMark" },
-          totalCceMark: { $sum: "$cceMark" },
-          totalPenalty: { $sum: "$penaltyScore" },
-          classInfo: { $first: "$classInfo" },
         },
       },
 
       {
         $addFields: {
           studentTotalScore: {
-            $subtract: [
-              {
-                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceMark"],
-              },
-              "$totalPenalty",
-            ],
+            $subtract: ["$totalExtraMark", "$totalPenalty"],
           },
         },
       },
 
       {
         $group: {
-          _id: "$_id.classId",
-          className: { $first: "$_id.className" },
-          classLogo: { $first: "$_id.classLogo" },
+          _id: "$classId",
+          className: { $first: "$classInfo.name" },
+          classLogo: { $first: "$classInfo.icon" },
           totalStudentScore: { $sum: "$studentTotalScore" },
           classInfo: { $first: "$classInfo" },
         },
@@ -633,11 +604,6 @@ export class StudentRepository implements IStudentRepository {
               0,
             ],
           },
-        },
-      },
-
-      {
-        $addFields: {
           classPenaltyScore: {
             $ifNull: [
               {
@@ -1032,46 +998,6 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
-          totalMentorMark: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$mentorMarks",
-                    as: "mm",
-                    cond: { $eq: ["$$mm.academicYear", academicYear] },
-                  },
-                },
-                as: "mmf",
-                in: "$$mmf.mark",
-              },
-            },
-          },
-          totalCceScore: {
-            $sum: {
-              $map: {
-                input: {
-                  $filter: {
-                    input: "$cceMarks",
-                    as: "cce",
-                    cond: { $eq: ["$$cce.academicYear", academicYear] },
-                  },
-                },
-                as: "ccef",
-                in: {
-                  $sum: {
-                    $map: {
-                      input: "$$ccef.subjects",
-                      as: "sub",
-                      in: {
-                        $multiply: ["$$sub.mark", 0.2],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
           totalPenaltyMark: {
             $sum: {
               $map: {
@@ -1094,9 +1020,7 @@ export class StudentRepository implements IStudentRepository {
         $addFields: {
           studentPerformanceScore: {
             $subtract: [
-              {
-                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
-              },
+              "$totalExtraMark",
               { $ifNull: ["$totalPenaltyMark", 0] },
             ],
           },
@@ -1182,7 +1106,6 @@ export class StudentRepository implements IStudentRepository {
       },
 
       { $sort: { totalScore: -1 } },
-
       { $limit: 10 },
     ];
 

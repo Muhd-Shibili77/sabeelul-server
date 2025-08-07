@@ -2,11 +2,13 @@ import { Router,Request,Response } from "express";
 import { ClassController } from "../controller/ClassController";
 import { ClassUseCase } from "../../application/useCase/ClassUseCase";
 import { ClassRepository } from "../../infrastructure/repositories/ClassRepository";
+import { StudentRepository } from "../../infrastructure/repositories/StudentRepository";
 import { authenticateJWT } from "../middlewares/authMiddleware";
 import { uploadClassIcon } from "../../infrastructure/config/multer";
 
 const classRepository = new ClassRepository();
-const classUseCase = new ClassUseCase(classRepository);
+const studentRepository = new StudentRepository();
+const classUseCase = new ClassUseCase(classRepository,studentRepository);
 const classController = new ClassController(classUseCase);
 const router = Router();
 

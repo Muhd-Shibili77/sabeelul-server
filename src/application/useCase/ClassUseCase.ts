@@ -3,9 +3,12 @@ import fs from "fs";
 import Class from "../../domain/entites/Class";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { IClassRepository } from "../interface/IClassRepository";
+import { IStudentRepository } from "../interface/IStudentRepository";
 
 export class ClassUseCase {
-  constructor(private classRepository: IClassRepository) {}
+  constructor(private classRepository: IClassRepository,
+    private studentRepository: IStudentRepository,
+  ) {}
 
   async fetchClasses(query: object = {}, page?: number, limit?: number) {
     return await this.classRepository.fetchClasses(query, page, limit);
@@ -224,29 +227,8 @@ export class ClassUseCase {
   }
 
   async fetchLeaderboard() {
-    const leaderboard = await this.classRepository.totalScore();
-     const result = leaderboard.map((cls) => {
-      const totalMark = (cls.marks || []).reduce(
-        (acc, mark) => acc + (mark.score || 0),
-        0
-      );
-
-      const totalPenalty = (cls.penaltyMarks || []).reduce(
-        (acc, mark) => acc + (mark.penaltyScore || 0),
-        0
-      );
-
-      return {
-        name: cls.name,
-        marks: totalMark || 0,
-        penaltyMarks: totalPenalty || 0,
-        totalMarks: totalMark - totalPenalty,
-      };
-    });
-
-    result.sort((a, b) => b.totalMarks - a.totalMarks);
-
-    return result;
+    const leaderboardQ = await this.studentRepository.getBestPerformingClass();
+    return leaderboardQ;
   }
 
   async fetchSubjects(classId:string){

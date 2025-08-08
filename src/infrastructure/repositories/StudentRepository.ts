@@ -528,7 +528,6 @@ export class StudentRepository implements IStudentRepository {
       },
       { $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
 
-      // 👇 This replaces all unwinding logic
       {
         $addFields: {
           totalExtraMark: {
@@ -624,6 +623,67 @@ export class StudentRepository implements IStudentRepository {
               0,
             ],
           },
+          // ✅ Fixed: Sum both semesters' averages
+          totalAvgCCMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgCCMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          totalAvgMentorMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgMentorMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          totalAvgPKVMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgPKVMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
         },
       },
 
@@ -631,7 +691,15 @@ export class StudentRepository implements IStudentRepository {
         $addFields: {
           totalScore: {
             $subtract: [
-              { $add: ["$totalStudentScore", "$classScore"] },
+              {
+                $add: [
+                  "$totalStudentScore",
+                  "$classScore",
+                  "$totalAvgCCMark",
+                  "$totalAvgMentorMark",
+                  "$totalAvgPKVMark", // Added this too
+                ],
+              },
               "$classPenaltyScore",
             ],
           },
@@ -649,6 +717,9 @@ export class StudentRepository implements IStudentRepository {
           totalStudentScore: 1,
           classScore: 1,
           classPenaltyScore: 1,
+          totalAvgCCMark: 1,
+          totalAvgMentorMark: 1,
+          totalAvgPKVMark: 1,
           totalScore: 1,
         },
       },
@@ -957,6 +1028,9 @@ export class StudentRepository implements IStudentRepository {
       totalStudentScore: number;
       classScore: number;
       classPenaltyScore: number;
+      totalAvgCCMark: number;
+      totalAvgMentorMark: number;
+      totalAvgPKVMark: number;
       totalScore: number;
     }[]
   > {
@@ -1079,6 +1153,69 @@ export class StudentRepository implements IStudentRepository {
               0,
             ],
           },
+          // ✅ Added: Sum both semesters' CC marks
+          totalAvgCCMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgCCMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          // ✅ Added: Sum both semesters' Mentor marks
+          totalAvgMentorMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgMentorMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          // ✅ Added: Sum both semesters' PKV marks
+          totalAvgPKVMark: {
+            $ifNull: [
+              {
+                $sum: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: "$classInfo.semesterAverages",
+                        as: "avg",
+                        cond: { $eq: ["$$avg.academicYear", academicYear] },
+                      },
+                    },
+                    as: "filteredAvg",
+                    in: "$$filteredAvg.avgPKVMark",
+                  },
+                },
+              },
+              0,
+            ],
+          },
         },
       },
 
@@ -1086,7 +1223,15 @@ export class StudentRepository implements IStudentRepository {
         $addFields: {
           totalScore: {
             $subtract: [
-              { $add: ["$totalStudentScore", "$classScore"] },
+              {
+                $add: [
+                  "$totalStudentScore",
+                  "$classScore",
+                  "$totalAvgCCMark", // ✅ Added
+                  "$totalAvgMentorMark", // ✅ Added
+                  "$totalAvgPKVMark", // ✅ Added
+                ],
+              },
               "$classPenaltyScore",
             ],
           },
@@ -1101,6 +1246,9 @@ export class StudentRepository implements IStudentRepository {
           totalStudentScore: 1,
           classScore: 1,
           classPenaltyScore: 1,
+          totalAvgCCMark: 1, // ✅ Added to output
+          totalAvgMentorMark: 1, // ✅ Added to output
+          totalAvgPKVMark: 1, // ✅ Added to output
           totalScore: 1,
         },
       },

@@ -19,6 +19,14 @@ export interface IClass extends Document {
     description: string;
     date: Date;
   }[];
+  semesterAverages?: {
+    academicYear: string;
+    semester: string;
+    avgCCeMark: number;
+    avgMentorMark: number;
+    avgPKVMark: number;
+    dateCalculated: Date;
+  }[];
 }
 
 const classSchema = new Schema<IClass>(
@@ -47,16 +55,16 @@ const classSchema = new Schema<IClass>(
         },
         item: {
           type: mongoose.Schema.Types.ObjectId,
-          ref:'ExtraMarkItem',
-          default:null
+          ref: "ExtraMarkItem",
+          default: null,
         },
         score: {
           type: Number,
           required: true,
         },
-        customItem:{
+        customItem: {
           type: String,
-          default:null
+          default: null,
         },
         description: {
           type: String,
@@ -88,6 +96,19 @@ const classSchema = new Schema<IClass>(
           type: Date,
           default: () => new Date(),
         },
+      },
+    ],
+    semesterAverages: [
+      {
+        academicYear: { type: String }, // e.g., "2025-2026"
+        semester: {
+          type: String,
+          enum: ["Rabee Semester", "Ramadan Semester"],
+        }, // Semester number
+        avgCCeMark: { type: Number },
+        avgMentorMark: { type: Number },
+        avgPKVMark: { type: Number },
+        dateCalculated: { type: Date, default: () => new Date() },
       },
     ],
   },

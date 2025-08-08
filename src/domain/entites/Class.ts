@@ -18,6 +18,14 @@ class Class {
     description: string;
     date: Date;
   }[];
+  public semesterAverages?: {
+    academicYear: string;
+    semester: string;
+    avgCCMark: number;
+    avgMentorMark: number;
+    avgPKVMark: number;
+    dateCalculated: Date;
+  }[];
 
   constructor(data: Partial<Class>) {
     Object.assign(this, data);

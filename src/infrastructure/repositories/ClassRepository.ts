@@ -46,8 +46,7 @@ export class ClassRepository implements IClassRepository {
       const classes = await ClassModel.find(query)
         .skip((page - 1) * limit)
         .limit(limit)
-        .sort({ name: 1 })
-        
+        .sort({ name: 1 });
 
       return {
         classes: classes.map(
@@ -168,8 +167,12 @@ export class ClassRepository implements IClassRepository {
     const result = classes.map((cls) => ({
       _id: cls._id,
       name: cls.name,
-      marks: cls.marks?.filter((mark) => mark.academicYear === academicYear)||[],
-      penaltyMarks: cls.penaltyMarks?.filter((mark) => mark.academicYear === academicYear)||[],
+      marks:
+        cls.marks?.filter((mark) => mark.academicYear === academicYear) || [],
+      penaltyMarks:
+        cls.penaltyMarks?.filter(
+          (mark) => mark.academicYear === academicYear
+        ) || [],
     }));
 
     return result;
@@ -294,5 +297,111 @@ export class ClassRepository implements IClassRepository {
     if (!updatedClass) {
       throw new Error("Failed to delete score from class");
     }
+  }
+
+  async publishScore(
+    classId: string,
+    academicYear: string,
+    semester: string,
+    scoreType: string,
+    score: number
+  ): Promise<any> {
+    const existingSemesterAvg = await ClassModel.findOne({
+      _id: classId,
+      "semesterAverages.academicYear": academicYear,
+      "semesterAverages.semester": semester,
+    });
+
+    if (existingSemesterAvg) {
+      // Type guard to ensure semesterAverages exists
+      if (
+        !existingSemesterAvg.semesterAverages ||
+        existingSemesterAvg.semesterAverages.length === 0
+      ) {
+        throw new Error("Semester averages not found");
+      }
+      const semesterAvg = existingSemesterAvg.semesterAverages.find(
+        (avg: any) =>
+          avg.academicYear === academicYear && avg.semester === semester
+      );
+      if (semesterAvg) {
+        // Check if score already exists for this scoreType
+        let existingScore;
+        let updateField;
+
+        switch (scoreType) {
+          case "CCe":
+            existingScore = semesterAvg.avgCCeMark || null;
+            updateField = "semesterAverages.$.avgCCeMark";
+            break;
+          case "Mentor":
+            existingScore = semesterAvg.avgMentorMark || null;
+            updateField = "semesterAverages.$.avgMentorMark";
+            break;
+          case "PKV":
+            existingScore = semesterAvg.avgPKVMark || null;
+            updateField = "semesterAverages.$.avgPKVMark";
+            break;
+          default:
+            throw new Error(`Invalid score type: ${scoreType}`);
+        }
+
+        // Check if score already exists (not null or undefined)
+        if (existingScore !== null && existingScore !== undefined) {
+          throw new Error(
+            `${scoreType} marks for ${semester} - ${academicYear} have already been published`
+          );
+        }
+
+        // Update the existing semester average with the new score
+        const result = await ClassModel.findOneAndUpdate(
+          {
+            _id: classId,
+            "semesterAverages.academicYear": academicYear,
+            "semesterAverages.semester": semester,
+          },
+          {
+            $set: {
+              [updateField]: score,
+              "semesterAverages.$.dateCalculated": new Date(),
+            },
+          },
+          { new: true }
+        );
+
+        if (!result) {
+          throw new Error("Failed to update semester average");
+        }
+
+        return result;
+      }
+    } else {
+      const newSemesterAvg = {
+        academicYear,
+        semester,
+        avgCCeMark: scoreType === "CCe" ? score : undefined,
+        avgMentorMark: scoreType === "Mentor" ? score : undefined,
+        avgPKVMark: scoreType === "PKV" ? score : undefined,
+      };
+      const result = await ClassModel.findByIdAndUpdate(
+        classId,
+        {
+          $push: {
+            semesterAverages: newSemesterAvg,
+          },
+        },
+        { new: true }
+      );
+
+      if (!result) {
+        throw new Error("Failed to create semester average");
+      }
+
+      return result;
+    }
+  }
+  async fetchClassId(): Promise<any> {
+    const idOfClass = await ClassModel.find({}, { _id: 1,name:1 });
+    return idOfClass
   }
 }

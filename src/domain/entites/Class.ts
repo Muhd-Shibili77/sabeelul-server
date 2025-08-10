@@ -21,7 +21,7 @@ class Class {
   public semesterAverages?: {
     academicYear: string;
     semester: string;
-    avgCCMark: number;
+    avgCCeMark: number;
     avgMentorMark: number;
     avgPKVMark: number;
     dateCalculated: Date;

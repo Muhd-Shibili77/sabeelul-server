@@ -38,9 +38,9 @@ export class ClassController {
       if (!req.file) {
         return res.status(400).json({ message: "No file uploaded." });
       }
-   
+
       const icon = `uploads/classIcons/${req.file.filename}`;
-      const { name} = req.body;
+      const { name } = req.body;
       const subjects: string[] = [];
       const newClass = await this.classUseCase.addClass(name, icon, subjects);
       res.status(StatusCode.OK).json({
@@ -58,15 +58,12 @@ export class ClassController {
 
   async updateClass(req: Request, res: Response) {
     try {
-
-      
-
       const id: string = req.params.id;
       const { name } = req.body;
       let icon = undefined;
 
       if (req.file) {
-           icon = `uploads/classIcons/${req.file.filename}`;
+        icon = `uploads/classIcons/${req.file.filename}`;
       }
       const updatedClass = await this.classUseCase.updateClass(id, name, icon);
       res.status(StatusCode.OK).json({
@@ -97,10 +94,14 @@ export class ClassController {
   }
   async addScore(req: Request, res: Response) {
     try {
-      
       const id: string = req.params.id;
-      const { item, score,discription } = req.body;
-      const updatedClass = await this.classUseCase.addScore(id, item, score,discription);
+      const { item, score, discription } = req.body;
+      const updatedClass = await this.classUseCase.addScore(
+        id,
+        item,
+        score,
+        discription
+      );
       res.status(StatusCode.OK).json({
         success: true,
         message: "Adding of score is successfull",
@@ -116,7 +117,7 @@ export class ClassController {
   async editScore(req: Request, res: Response) {
     try {
       const { updatedMark, markId } = req.body;
-      console.log(updatedMark)
+      console.log(updatedMark);
       // Access values like this:
       const item = updatedMark.item;
       const discription = updatedMark.discription;
@@ -127,7 +128,7 @@ export class ClassController {
         markId,
         item,
         discription,
-        score,
+        score
       );
       res.status(StatusCode.OK).json({
         success: true,
@@ -210,12 +211,16 @@ export class ClassController {
     }
   }
 
-   async addPenaltyScore(req: Request, res: Response) {
+  async addPenaltyScore(req: Request, res: Response) {
     try {
-      
       const id: string = req.params.id;
-      const { reason, penaltyScore,description } = req.body;
-      const updatedClass = await this.classUseCase.addPenaltyScore(id, reason, penaltyScore,description);
+      const { reason, penaltyScore, description } = req.body;
+      const updatedClass = await this.classUseCase.addPenaltyScore(
+        id,
+        reason,
+        penaltyScore,
+        description
+      );
       res.status(StatusCode.OK).json({
         success: true,
         message: "Adding of penalty score is successfull",
@@ -230,16 +235,15 @@ export class ClassController {
   }
   async editPenaltyScore(req: Request, res: Response) {
     try {
-      const { markId,reason, penaltyScore,description } = req.body;
+      const { markId, reason, penaltyScore, description } = req.body;
 
-      
       const id: string = req.params.id;
       const updatedClass = await this.classUseCase.editPenaltyScore(
         id,
         markId,
         reason,
         penaltyScore,
-        description,
+        description
       );
       res.status(StatusCode.OK).json({
         success: true,
@@ -257,7 +261,10 @@ export class ClassController {
     try {
       const classId = req.params.id;
       const { markId } = req.body;
-      const updatedClass = await this.classUseCase.deletePenaltyScore(classId, markId);
+      const updatedClass = await this.classUseCase.deletePenaltyScore(
+        classId,
+        markId
+      );
       res.status(StatusCode.OK).json({
         success: true,
         message: "Deleting of penalty score is successfull",
@@ -277,7 +284,7 @@ export class ClassController {
       res.status(StatusCode.OK).json({
         success: true,
         message: "Fetching of leaderboard is successfull",
-        data: result
+        data: result,
       });
     } catch (error: any) {
       console.error(error);
@@ -287,14 +294,48 @@ export class ClassController {
     }
   }
 
-  async getSubjects(req:Request,res:Response){
+  async getSubjects(req: Request, res: Response) {
     try {
       const classId: string = req.params.id;
       const result = await this.classUseCase.fetchSubjects(classId);
       res.status(StatusCode.OK).json({
         success: true,
         message: "Fetching of subjects is successfull",
-        subjects: result
+        subjects: result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async publishScore(req: Request, res: Response) {
+    try {
+      const classId: string = req.params.id;
+      const { semester, scoreType } = req.body;
+      const result = await this.classUseCase.publishScore(classId,semester,scoreType);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: `Publish ${scoreType} score is successfull`,
+        data: result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+
+  async getFullScore(req: Request, res: Response) {
+    try {
+      const result = await this.classUseCase.getFullScore();
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Fetching of full score is successfull",
+        data: result,
       });
     } catch (error: any) {
       console.error(error);

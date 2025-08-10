@@ -6,8 +6,9 @@ import { IClassRepository } from "../interface/IClassRepository";
 import { IStudentRepository } from "../interface/IStudentRepository";
 
 export class ClassUseCase {
-  constructor(private classRepository: IClassRepository,
-    private studentRepository: IStudentRepository,
+  constructor(
+    private classRepository: IClassRepository,
+    private studentRepository: IStudentRepository
   ) {}
 
   async fetchClasses(query: object = {}, page?: number, limit?: number) {
@@ -231,12 +232,88 @@ export class ClassUseCase {
     return leaderboardQ;
   }
 
-  async fetchSubjects(classId:string){
+  async fetchSubjects(classId: string) {
     if (!classId) {
       throw new Error("class id is required");
     }
-    const classes = await this.classRepository.findClassById(classId)
-    return classes?.subjects ? classes?.subjects : []
+    const classes = await this.classRepository.findClassById(classId);
+    return classes?.subjects ? classes?.subjects : [];
+  }
+  async publishScore(classId: string, semester: string, scoreType: string) {
+    const academicYear = getCurrentAcademicYear();
+    const cls = await this.classRepository.findClassById(classId);
+    if (!cls) {
+      throw new Error("Class not found");
+    }
+    const validScoreTypes = ["CCe", "Mentor", "PKV"];
+    if (!validScoreTypes.includes(scoreType)) {
+      throw new Error(
+        `Invalid score type. Must be one of: ${validScoreTypes.join(", ")}`
+      );
+    }
+    const validSemesters = ["Rabee Semester", "Ramadan Semester"];
+    if (!validSemesters.includes(semester)) {
+      throw new Error(
+        `Invalid semester. Must be one of: ${validSemesters.join(", ")}`
+      );
+    }
+    const score = await this.studentRepository.calculateAvgMark(
+      classId,
+      semester,
+      scoreType,
+      academicYear
+    );
+    const result = await this.classRepository.publishScore(
+      classId,
+      academicYear,
+      semester,
+      scoreType,
+      score
+    );
+    return result;
+  }
+  async getFullScore() {
+    const academicYear = getCurrentAcademicYear();
 
+    // 1️⃣ Fetch all classes with ID and Name
+    const classes = await this.classRepository.fetchClassId();
+    // Expected: [{ _id: "classId1", name: "Class 1" }, ...]
+
+    const semesters = ["Rabee Semester", "Ramadan Semester"];
+    const scoreTypes = ["CCe", "Mentor", "PKV"];
+
+    const results = [];
+
+    // 2️⃣ Loop through each class
+    for (const cls of classes) {
+      const classData: any = {
+        classId: cls._id,
+        className: cls.name,
+        academicYear,
+        scores: {
+          "Rabee Semester": {},
+          "Ramadan Semester": {},
+        },
+      };
+
+      // 3️⃣ Loop through each semester
+      for (const semester of semesters) {
+        // 4️⃣ Loop through each score type
+        for (const scoreType of scoreTypes) {
+          const mark = await this.studentRepository.calculateAvgMark(
+            cls._id.toString(),
+            semester,
+            scoreType,
+            academicYear
+          );
+
+          classData.scores[semester][scoreType] = mark;
+        }
+      }
+
+      results.push(classData);
+    }
+
+    return results;
   }
 }

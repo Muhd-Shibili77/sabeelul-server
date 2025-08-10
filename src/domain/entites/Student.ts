@@ -1,3 +1,4 @@
+import { IClass } from "../../infrastructure/models/ClassModel";
 class Student {
   public readonly _id!: string;
   public admissionNo!: string;
@@ -7,7 +8,7 @@ class Student {
   public address?: string;
   public email?: string;
   public password!: string;
-  public classId!: string;
+  public classId!: string | IClass;
   public guardianName?: string;
   public profileImage?: string;
   public isDeleted!: boolean;
@@ -20,6 +21,12 @@ class Student {
     discription: string;
   }[];
   public mentorMarks?: {
+   academicYear: string;
+    semester: string;
+    mark: number;
+    date: Date;
+  }[];
+  public PKVMarks?: {
    academicYear: string;
     semester: string;
     mark: number;

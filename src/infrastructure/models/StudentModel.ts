@@ -1,6 +1,6 @@
 import e from "express";
 import mongoose, { Schema, Document, Model } from "mongoose";
-
+import { IClass } from "./ClassModel";
 export interface IStudent extends Document {
   admissionNo: string;
   rank:number;
@@ -9,7 +9,7 @@ export interface IStudent extends Document {
   address: string;
   email: string;
   password: string;
-  classId: string;
+  classId: string | IClass;
   guardianName: string;
   profileImage: string;
   isDeleted?: boolean;
@@ -22,6 +22,12 @@ export interface IStudent extends Document {
     description: string;
   }[];
   mentorMarks?: {
+    academicYear: string;
+    semester: string;
+    mark: number;
+    date: Date;
+  }[];
+  PKVMarks?: {
     academicYear: string;
     semester: string;
     mark: number;
@@ -81,6 +87,17 @@ const studentSchema = new Schema(
     ],
 
     mentorMarks: [
+      {
+        academicYear: { type: String },
+        semester: {
+          type: String,
+          enum: ["Rabee Semester", "Ramadan Semester"],
+        },
+        mark: { type: Number },
+        date: { type: Date, default: () => new Date() },
+      },
+    ],
+    PKVMarks: [
       {
         academicYear: { type: String },
         semester: {

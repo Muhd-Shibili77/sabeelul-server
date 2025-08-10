@@ -4,7 +4,7 @@ import Student from "../../domain/entites/Student";
 import StudentModel from "../models/StudentModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
 import { ClassPerformance } from "../../domain/types/classPerfromance";
-import classModel from "../models/ClassModel";
+import classModel, { IClass } from "../models/ClassModel";
 import TeacherModel from "../models/TeacherModel";
 import ExtraMarkItemModel from "../models/ExtraMarkItemModel";
 export class StudentRepository implements IStudentRepository {
@@ -624,7 +624,7 @@ export class StudentRepository implements IStudentRepository {
             ],
           },
           // ✅ Fixed: Sum both semesters' averages
-          totalAvgCCMark: {
+          totalAvgCCeMark: {
             $ifNull: [
               {
                 $sum: {
@@ -637,7 +637,7 @@ export class StudentRepository implements IStudentRepository {
                       },
                     },
                     as: "filteredAvg",
-                    in: "$$filteredAvg.avgCCMark",
+                    in: "$$filteredAvg.avgCCeMark",
                   },
                 },
               },
@@ -695,7 +695,7 @@ export class StudentRepository implements IStudentRepository {
                 $add: [
                   "$totalStudentScore",
                   "$classScore",
-                  "$totalAvgCCMark",
+                  "$totalAvgCCeMark",
                   "$totalAvgMentorMark",
                   "$totalAvgPKVMark", // Added this too
                 ],
@@ -717,7 +717,7 @@ export class StudentRepository implements IStudentRepository {
           totalStudentScore: 1,
           classScore: 1,
           classPenaltyScore: 1,
-          totalAvgCCMark: 1,
+          totalAvgCCeMark: 1,
           totalAvgMentorMark: 1,
           totalAvgPKVMark: 1,
           totalScore: 1,
@@ -1154,7 +1154,7 @@ export class StudentRepository implements IStudentRepository {
             ],
           },
           // ✅ Added: Sum both semesters' CC marks
-          totalAvgCCMark: {
+          totalAvgCCeMark: {
             $ifNull: [
               {
                 $sum: {
@@ -1167,7 +1167,7 @@ export class StudentRepository implements IStudentRepository {
                       },
                     },
                     as: "filteredAvg",
-                    in: "$$filteredAvg.avgCCMark",
+                    in: "$$filteredAvg.avgCCeMark",
                   },
                 },
               },
@@ -1227,7 +1227,7 @@ export class StudentRepository implements IStudentRepository {
                 $add: [
                   "$totalStudentScore",
                   "$classScore",
-                  "$totalAvgCCMark", // ✅ Added
+                  "$totalAvgCCeMark", // ✅ Added
                   "$totalAvgMentorMark", // ✅ Added
                   "$totalAvgPKVMark", // ✅ Added
                 ],
@@ -1370,6 +1370,95 @@ export class StudentRepository implements IStudentRepository {
     );
     if (!result) {
       throw new Error("Failed to delete penalty score from student");
+    }
+  }
+  async calculateAvgMark(
+    classId: string,
+    semester: string,
+    scoreType: string,
+    academicYear: string
+  ): Promise<number> {
+    try {
+      const students = await StudentModel.find({
+        classId: classId,
+        isDeleted: { $ne: true },
+      }).populate<{ classId: IClass }>({ path: "classId", select: "subjects" });
+      if (students.length === 0) {
+        return 0;
+      }
+      let totalScore = 0;
+      for (const student of students) {
+        let studentScore = 0;
+
+        switch (scoreType) {
+          case "CCe":
+            const cceRecord = student.cceMarks?.find(
+              (record) =>
+                record.academicYear === academicYear &&
+                record.semester === semester
+            );
+
+            if (cceRecord && cceRecord.subjects.length > 0) {
+              const scoredCCEMark = cceRecord.subjects.reduce(
+                (sum, subject) => sum + (subject.mark || 0),
+                0
+              );
+              // ✅ 2. Get total subjects from populated class document
+              const totalSubjectsInClass = Array.isArray(
+                student.classId.subjects
+              )
+                ? student.classId.subjects.length
+                : 0;
+              const totalCCEMark = (totalSubjectsInClass - 1) * 30 + 100;
+              // 3️⃣ Convert to percentage
+              const percentage = (scoredCCEMark / totalCCEMark) * 100;
+
+              // 4️⃣ Take percentage as mark (rounded)
+              studentScore = Math.round(percentage);
+            }
+            break;
+          case "Mentor":
+            const mentorRecord = student.mentorMarks?.find(
+              (record) =>
+                record.academicYear === academicYear &&
+                record.semester === semester
+            );
+
+            if (
+              mentorRecord &&
+              mentorRecord.mark !== undefined &&
+              mentorRecord.mark !== null
+            ) {
+              studentScore = mentorRecord.mark;
+            }
+            break;
+          case "PKV":
+            const PKVRecord = student.PKVMarks?.find(
+              (record) =>
+                record.academicYear === academicYear &&
+                record.semester === semester
+            );
+
+            if (
+              PKVRecord &&
+              PKVRecord.mark !== undefined &&
+              PKVRecord.mark !== null
+            ) {
+              studentScore = PKVRecord.mark;
+            }
+            break;
+          default:
+            throw new Error(`Invalid score type: ${scoreType}`);
+        }
+        totalScore += studentScore; // Add even if it's 0
+      }
+      // Average = total marks of all students / total student count
+      const avg = totalScore / students.length;
+      // Multiply by 35 and round
+      return Math.round(avg * 35);
+    } catch (error: any) {
+      console.error("Error calculating average score:", error);
+      throw new Error(`Failed to calculate average score: ${error.message}`);
     }
   }
 }

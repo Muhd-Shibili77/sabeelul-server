@@ -17,4 +17,6 @@ export interface IClassRepository {
     addPenaltyScore(id:string,academicYear:string,reason:string,penaltyScore:number,description:string):Promise<Class>;
     editPenaltyScore(id:string,markId:string,reason:string,penaltyScore:number,description:string):Promise<Class>;
     deletePenaltyScore(classId:string,markId:string):Promise<void>;
+    publishScore(classId:string,academicYear:string,semester:string,scoreType:string,score:number):Promise<any>;
+    fetchClassId(): Promise<any>;
 }

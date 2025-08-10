@@ -63,4 +63,5 @@ export interface IStudentRepository {
   getTopStudentsInClass(classId: string): Promise<Student[]>;
   isExist(data: string): Promise<boolean>;
   getTopClass(): Promise<{ className: string; totalScore: number }[]>;
+  calculateAvgMark(classId: string, semester: string, scoreType: string, academicYear: string): Promise<number>;
 }

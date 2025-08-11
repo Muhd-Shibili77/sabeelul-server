@@ -1455,9 +1455,6 @@ export class StudentRepository implements IStudentRepository {
       // Average = total marks of all students / total student count
       const avg = totalScore / students.length;
       // Multiply by 35 and round
-      console.log("totalScore",totalScore)
-      console.log("avg",avg)
-      console.log("result",Math.round(avg * 35))
       return Math.round(avg * 35);
     } catch (error: any) {
       console.error("Error calculating average score:", error);

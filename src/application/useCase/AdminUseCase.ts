@@ -2,13 +2,48 @@ import { IStudentRepository } from "../interface/IStudentRepository";
 import { ITeacherRepository } from "../interface/ITeacherRepository";
 import { IExtraMarkItemRepository } from "../interface/IExtraMarkItemRepository";
 import { IThemeRepository } from "../interface/IThemeRepository";
+import { IAdminRepository } from "../interface/IAdminRepository";
+import bcrypt from "bcrypt";
 export class AdminUseCase {
   constructor(
     private studentRepository: IStudentRepository,
     private teacherRepository: ITeacherRepository,
     private themeRepository: IThemeRepository,
-    private extraMarkItemRepository: IExtraMarkItemRepository
+    private extraMarkItemRepository: IExtraMarkItemRepository,
+    private adminRepository: IAdminRepository
   ) {}
+
+  async changePassword(
+    id: string,
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ) {
+    if(!id){
+      throw new Error('Admin id is required')
+    }
+    if (newPassword != "" && newPassword.length < 5) {
+      throw new Error("Password must be at least 5 characters long.");
+    }
+    const existAdmin = await this.adminRepository.findAdminById(id);
+    if (!existAdmin) {
+      throw new Error("Admin not found");
+    }
+    const isMatch = await bcrypt.compare(currentPassword, existAdmin.password);
+    if (!isMatch) throw new Error("Current password is incorrect.");
+
+    if (newPassword !== confirmPassword) {
+      throw new Error("New password and confirmation password do not match.");
+    }
+    if (currentPassword === newPassword) {
+      throw new Error(
+        "New password cannot be the same as the current password."
+      );
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const result = await this.adminRepository.changePassword(id,hashedPassword)
+    return result
+  }
 
   async getDashboard() {
     const totalStudents = await this.studentRepository.countStudent();
@@ -38,7 +73,9 @@ export class AdminUseCase {
     }
     // Get all existing themes except the one being updated
     const allThemes = await this.themeRepository.getTheme();
-    const otherThemes = allThemes.filter((theme) => theme._id.toString() !== id);
+    const otherThemes = allThemes.filter(
+      (theme) => theme._id.toString() !== id
+    );
 
     const hasOverlap = otherThemes.some((theme) => {
       // Two ranges overlap if: start1 <= end2 && start2 <= end1

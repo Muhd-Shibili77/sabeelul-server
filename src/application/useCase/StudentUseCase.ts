@@ -220,6 +220,7 @@ export class StudentUseCase {
           _id: student._id,
           admNo: student.admissionNo,
           name: student.name,
+          rank: student.rank,
           className: (student.classId as unknown as { name: string }).name,
           phone: student.phone,
           level: studentLevel,

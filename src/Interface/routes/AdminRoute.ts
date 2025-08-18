@@ -22,6 +22,12 @@ router.get('/dashboard',authenticateJWT(['Admin']),async (req:Request,res:Respon
 router.put('/changePassword/:id',authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
     await adminController.changePassword(req,res)
 })
+router.put('/block',authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
+    await adminController.blockTeachers(req,res)
+})
+router.put('/block/:id',authenticateJWT(['Admin']),async (req:Request,res:Response)=>{
+    await adminController.blockTeacherById(req,res)
+})
 router.route('/theme')
 .get(authenticateJWT(['Admin','Student']),async (req:Request,res:Response)=>{
     await adminController.getTheme(req,res)

@@ -9,6 +9,7 @@ export interface ITeacher extends Document{
     password:string,
     profileImage:string,
     isDeleted?:boolean
+    isBlock?:boolean
 }
 
 const teacherSchema = new Schema({
@@ -41,6 +42,10 @@ const teacherSchema = new Schema({
         required:true
     },
     isDeleted:{
+        type:Boolean,
+        default:false
+    },
+    isBlock:{
         type:Boolean,
         default:false
     }

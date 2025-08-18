@@ -143,4 +143,35 @@ export class AdminController {
         .json({ success: false, message: error.message });
     }
   }
+  async blockTeachers(req: Request, res: Response) {
+    try {
+      const result = await this.adminUseCase.blockTeachers();
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "successfully toggle Block status teachers",
+        result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
+  async blockTeacherById(req: Request, res: Response) {
+    try {
+      const id: string = req.params.id;
+      const result = await this.adminUseCase.blockTeacherById(id);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Toggle block status of teacher successfull",
+        result,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
 }

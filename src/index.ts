@@ -12,8 +12,7 @@ import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 import path from "path";
 import cleanAllStudentsCCE from "./shared/utils/clearRepeatCCe";
-
-
+import { addAdmin } from "./shared/utils/addAdmin";
 import ThemeModel from "./infrastructure/models/ThemeModel";
 
 dotenv.config();
@@ -47,6 +46,10 @@ app.get("/", (req, res) => {
 app.get("/clean", (req, res) => {
   res.send("Cleaning....");
   // cleanAllStudentsCCE()
+});
+app.get("/addAdmin", (req, res) => {
+  // addAdmin('admin@shibili.com','123456')
+  res.send("Adding... admin");
 });
 
 // async function addTheme(){

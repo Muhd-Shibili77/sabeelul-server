@@ -13,14 +13,33 @@ export class AdminUseCase {
     private adminRepository: IAdminRepository
   ) {}
 
+  async blockTeachers() {
+    const result = await this.adminRepository.blockTeachers();
+    if(!result){
+      throw new Error('Error while toggling block status of teachers')
+    }
+    return result 
+  }
+  async blockTeacherById(id: string) {
+    if (!id) {
+      throw new Error("Teacher id is required");
+    }
+    const existTeacher = await this.teacherRepository.findTeacherById(id);
+    if (!existTeacher) {
+      throw new Error("Teacher not found");
+    }
+    const result = await this.adminRepository.blockTeacherById(id);
+    return result;
+  }
+
   async changePassword(
     id: string,
     currentPassword: string,
     newPassword: string,
     confirmPassword: string
   ) {
-    if(!id){
-      throw new Error('Admin id is required')
+    if (!id) {
+      throw new Error("Admin id is required");
     }
     if (newPassword != "" && newPassword.length < 5) {
       throw new Error("Password must be at least 5 characters long.");
@@ -41,8 +60,11 @@ export class AdminUseCase {
       );
     }
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    const result = await this.adminRepository.changePassword(id,hashedPassword)
-    return result
+    const result = await this.adminRepository.changePassword(
+      id,
+      hashedPassword
+    );
+    return result;
   }
 
   async getDashboard() {

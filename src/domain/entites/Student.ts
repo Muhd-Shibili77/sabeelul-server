@@ -12,6 +12,7 @@ class Student {
   public guardianName?: string;
   public profileImage?: string;
   public isDeleted!: boolean;
+  public isBlock!: boolean;
   public extraMarks?: {
     academicYear: string;
     programId: string;

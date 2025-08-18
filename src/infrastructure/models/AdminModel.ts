@@ -2,7 +2,8 @@ import mongoose,{Schema,Document} from "mongoose";
 
 export interface IAdmin extends Document{
     email:string,
-    password:string
+    password:string,
+    isBlock:boolean
 }
 
 const adminSchema = new Schema({
@@ -13,6 +14,10 @@ const adminSchema = new Schema({
     password:{
         type:String,
         required:true
+    },
+    isBlock:{
+        type:Boolean,
+        default:false
     }
 },{ timestamps:true})
 

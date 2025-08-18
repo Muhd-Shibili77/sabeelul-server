@@ -13,6 +13,7 @@ export interface IStudent extends Document {
   guardianName: string;
   profileImage: string;
   isDeleted?: boolean;
+  isBlock?: boolean;
   extraMarks?: {
     academicYear: string;
     programId?: mongoose.Types.ObjectId;
@@ -70,6 +71,7 @@ const studentSchema = new Schema(
     guardianName: { type: String },
     profileImage: { type: String },
     isDeleted: { type: Boolean, default: false },
+    isBlock: { type: Boolean, default: false },
 
     extraMarks: [
       {

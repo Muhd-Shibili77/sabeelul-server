@@ -101,6 +101,22 @@ export class StudentController {
         .json({ success: false, message: error.message });
     }
   }
+  async fetchPkvScore(req: Request, res: Response) {
+    try {
+      const id: string = req.params.id;
+      const student = await this.studentUsecase.fetchPKVScore(id);
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "fetching pkv score is successfull",
+        students: student,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
   async addStudent(req: Request, res: Response) {
     try {
       const {

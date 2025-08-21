@@ -289,6 +289,58 @@ export class StudentUseCase {
 
     return studentsWithMentorScores;
   }
+  async fetchPKVScore(id: string) {
+    if (!id) {
+      throw new Error("Class ID is required.");
+    }
+
+    const academicYear = getCurrentAcademicYear();
+    const students = await this.studentRepository.findByClass(id);
+
+    if (!students || students.length === 0) {
+      throw new Error("No students found in this class.");
+    }
+
+    const expectedSemesters = ["Rabee Semester", "Ramadan Semester"]; // add more if needed
+
+    const studentsWithPKVScores = students
+      .map((student) => {
+        const PKVMarks =
+          student.PKVMarks?.filter(
+            (mark) => mark.academicYear === academicYear
+          ) || [];
+
+        // Total marks
+        const totalPKVMark = PKVMarks.reduce(
+          (sum, mark) => sum + (mark.mark || 0),
+          0
+        );
+
+        // Initialize all semester marks with 0
+        const semesterMarks: Record<string, number> = {};
+        expectedSemesters.forEach((sem) => {
+          semesterMarks[sem] = 0;
+        });
+
+        // Fill in actual semester marks
+        PKVMarks.forEach((mark) => {
+          if (mark.semester && expectedSemesters.includes(mark.semester)) {
+            semesterMarks[mark.semester] += mark.mark || 0;
+          }
+        });
+
+        return {
+          admNo: student.admissionNo,
+          name: student.name,
+          className: (student.classId as unknown as { name: string }).name,
+          marks: totalPKVMark,
+          ...semesterMarks,
+        };
+      })
+      .sort((a, b) => b.marks - a.marks);
+
+    return studentsWithPKVScores;
+  }
 
   async addStudent(
     admissionNo: string,

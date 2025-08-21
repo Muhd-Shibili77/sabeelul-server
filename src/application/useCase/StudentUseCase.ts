@@ -727,6 +727,73 @@ export class StudentUseCase {
 
     return student;
   }
+  async addPkvScore(
+    id: string,
+    semester: string,
+    mark: number
+  ): Promise<Student> {
+    const academicYear = getCurrentAcademicYear();
+    if (!id) throw new Error("id is required");
+    if (!academicYear) throw new Error("academicYear is required");
+    if (mark === undefined || mark === null)
+      throw new Error("mark is required");
+    if (mark < 0) throw new Error("mark must be greater than or equal to zero");
+    if (!semester) throw new Error("semester is required");
+
+    const studentExist = await this.studentRepository.findStudentById(id);
+    if (!studentExist) throw new Error("student not exist");
+
+    // === PKV Marks ===
+    const existingPKVRecord = studentExist.PKVMarks?.find(
+      (record) =>
+        record.academicYear === academicYear && record.semester === semester
+    );
+
+    let isUpdate = !!existingPKVRecord;
+
+    // ✅ PKV score is limited to 50
+    if (mark > 50) {
+      throw new Error(`PKV Score cannot exceed 50`);
+    }
+
+    const { student, addedMark } = await this.studentRepository.addPKVScore(
+      id,
+      academicYear,
+      mark,
+      semester
+    );
+    if (!student) {
+      throw new Error("Failed to add PKV mark to student");
+    }
+    if (!addedMark || !addedMark._id) {
+      throw new Error("Failed to get mark ID after adding PKV mark");
+    }
+
+    // === Logs ===
+    const logTitle = `PKV Score - ${semester}`;
+    if (isUpdate && addedMark?._id) {
+      await this.markLogsRepository.updateMarkLog(
+        id,
+        addedMark._id.toString(),
+        mark,
+        logTitle
+      );
+    } else {
+      const recentInput = await this.markLogsRepository.addMarkLog(
+        id,
+        academicYear,
+        logTitle,
+        mark,
+        "PKV",
+        addedMark._id
+      );
+      if (!recentInput) {
+        throw new Error("Adding PKV log failed");
+      }
+    }
+
+    return student;
+  }
 
   async fetchCCEMark(id: string) {
     if (!id) {
@@ -901,7 +968,6 @@ export class StudentUseCase {
     const totalMaxCCE = 100 + (totalSubjects - 1) * 30;
     let scoredCCE = 0;
 
-    
     const subjectWiseMarks: SubjectMark[] = [];
 
     if (student.cceMarks?.length) {

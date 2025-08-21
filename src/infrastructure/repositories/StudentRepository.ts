@@ -213,6 +213,55 @@ export class StudentRepository implements IStudentRepository {
       addedMark,
     };
   }
+  async addPKVScore(
+    id: string,
+    academicYear: string,
+    mark: number,
+    semester: string
+  ): Promise<{ student: Student; addedMark: any }> {
+    let addedMark;
+    const student = await StudentModel.findById(id);
+    if (!student) {
+      throw new Error("student not found");
+    }
+
+    if (!student.PKVMarks) {
+      student.PKVMarks = [];
+    }
+    const existingMarkIndex = student.PKVMarks.findIndex(
+      (entry) =>
+        entry.academicYear === academicYear && entry.semester === semester
+    );
+
+    if (existingMarkIndex !== -1) {
+      student.PKVMarks[existingMarkIndex].mark = mark;
+      student.PKVMarks[existingMarkIndex].date = new Date();
+    } else {
+      student.PKVMarks.push({
+        academicYear,
+        semester,
+        mark,
+        date: new Date(),
+      });
+    }
+
+    const updatedStudent = await student.save();
+
+    if (!updatedStudent) {
+      throw new Error("Adding pkv failed");
+    }
+    if (updatedStudent.PKVMarks) {
+      addedMark = updatedStudent.PKVMarks.find(
+        (entry) =>
+          entry.academicYear === academicYear && entry.semester === semester
+      );
+    }
+
+    return {
+      student: new Student(updatedStudent.toObject() as Student),
+      addedMark,
+    };
+  }
   async addCceScore(
     id: string,
     academicYear: string,

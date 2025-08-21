@@ -47,7 +47,7 @@ export class StudentController {
   async fetchByLevel(req: Request, res: Response) {
     try {
       const level: string = req.query.level as string;
-      const className: string = req.query.class as string || "";
+      const className: string = (req.query.class as string) || "";
       const students = await this.studentUsecase.fetchByLevel(level, className);
       res.status(StatusCode.OK).json({
         success: true,
@@ -64,9 +64,14 @@ export class StudentController {
 
   async fetchStudentsByClass(req: Request, res: Response) {
     try {
-      const classId: string = req.query.classId as string || '';
-      const top: number | undefined = req.query.top ? parseInt(req.query.top as string) : undefined;
-      const students = await this.studentUsecase.fetchStudentsByClass(classId, top);
+      const classId: string = (req.query.classId as string) || "";
+      const top: number | undefined = req.query.top
+        ? parseInt(req.query.top as string)
+        : undefined;
+      const students = await this.studentUsecase.fetchStudentsByClass(
+        classId,
+        top
+      );
       res.status(StatusCode.OK).json({
         success: true,
         message: "Fetching of students by class is successfull",
@@ -322,6 +327,38 @@ export class StudentController {
         .json({ success: false, message: error.message });
     }
   }
+  async addPkvScore(req: Request, res: Response) {
+    try {
+      const payload: {
+        id: string;
+        data: {
+          semester: string;
+          mark: number;
+        };
+      }[] = req.body;
+
+      const results = await Promise.all(
+        payload.map(({ id, data }) =>
+          this.studentUsecase.addPkvScore(
+            id,
+            data.semester,
+            data.mark
+          )
+        )
+      );
+
+      res.status(StatusCode.OK).json({
+        success: true,
+        message: "Batch PKV marks added successfully",
+        data: results,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
 
   async fetchCCEMark(req: Request, res: Response) {
     try {
@@ -330,7 +367,7 @@ export class StudentController {
       res.status(StatusCode.OK).json({
         success: true,
         message: "fetching profile successfull",
-        data:student,
+        data: student,
       });
     } catch (error: any) {
       console.error(error);
@@ -391,7 +428,7 @@ export class StudentController {
 
   async fetchByClass(req: Request, res: Response) {
     try {
-      const classId: string = req.params.id || '';
+      const classId: string = req.params.id || "";
       const students = await this.studentUsecase.fetchByClass(classId);
       res.status(StatusCode.OK).json({
         success: true,

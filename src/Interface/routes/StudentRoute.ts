@@ -117,6 +117,9 @@ router
       await studentController.fetchMentorScore(req, res);
     }
   );
+router.route("/pkv").post(async (req: Request, res: Response) => {
+  await studentController.addPkvScore(req, res);
+});
 router.route("/cce/batch").post(async (req: Request, res: Response) => {
   await studentController.addCceScore(req, res);
 });

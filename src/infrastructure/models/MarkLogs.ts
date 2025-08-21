@@ -43,7 +43,7 @@ const markLogsSchema = new Schema<IMarkLogs>(
         },
         scoreType: {
           type: String,
-          enum: ['Mentor', 'CCE', 'Penalty', 'Credit'],
+          enum: ['Mentor', 'CCE', 'Penalty', 'Credit','PKV'],
           required: true,
         },
       },

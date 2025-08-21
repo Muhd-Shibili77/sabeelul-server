@@ -44,6 +44,12 @@ export interface IStudentRepository {
     mark: number,
     semester: string
   ): Promise<{ student: Student; addedMark: any }>;
+  addPKVScore(
+    id: string,
+    academicYear: string,
+    mark: number,
+    semester: string
+  ): Promise<{ student: Student; addedMark: any }>;
   addCceScore(
     id: string,
     academicYear: string,

@@ -1047,6 +1047,11 @@ export class StudentUseCase {
       student.mentorMarks
         ?.filter((m) => m.academicYear === academicYear)
         .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
+    const pkvMarkTotal =
+      student.PKVMarks?.filter((m) => m.academicYear === academicYear).reduce(
+        (sum, m) => sum + (m.mark || 0),
+        0
+      ) || 0;
 
     const extraMarkTotal = Math.round(
       student.extraMarks
@@ -1059,7 +1064,12 @@ export class StudentUseCase {
         .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
 
     const totalMarks = Math.round(
-      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200 - penaltyMarkTotal
+      cceMarkTotal +
+        mentorMarkTotal +
+        pkvMarkTotal +
+        extraMarkTotal +
+        200 -
+        penaltyMarkTotal
     );
 
     const recentInputs = await this.markLogsRepository.getMarkLogs(
@@ -1072,6 +1082,7 @@ export class StudentUseCase {
       cceScore: cceMarkTotal,
       creditScore: extraMarkTotal,
       mentorMark: mentorMarkTotal,
+      PKVMark: pkvMarkTotal,
       penaltyScore: penaltyMarkTotal,
       subjectWiseMarks: subjectWiseMarks, // Added subject-wise marks
       recentInputs: recentInputs, // Fixed the typo in the property name

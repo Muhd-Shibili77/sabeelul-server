@@ -10,6 +10,7 @@ import ProgramRoute from './Interface/routes/ProgramRoute';
 import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
+import PKVRoute from './Interface/routes/PKVRoute'
 import path from "path";
 import cleanAllStudentsCCE from "./shared/utils/clearRepeatCCe";
 import { addAdmin } from "./shared/utils/addAdmin";
@@ -40,6 +41,7 @@ app.use("/program", ProgramRoute);
 app.use("/student", StudentRoute);
 app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
+app.use("/pkv",PKVRoute)
 app.get("/", (req, res) => {
   res.send("server is working");
 });

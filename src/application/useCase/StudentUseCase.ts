@@ -976,6 +976,11 @@ export class StudentUseCase {
         ?.filter((m) => m.academicYear === academicYear)
         .reduce((sum, m) => sum + (m.mark || 0), 0) || 0;
 
+    const pkvMarkTotal =
+      student.PKVMarks?.filter((m) => m.academicYear === academicYear).reduce(
+        (sum, m) => sum + (m.mark || 0),
+        0
+      ) || 0;
     const extraMarkTotal = Math.round(
       student.extraMarks
         ?.filter((e) => e.academicYear === academicYear)
@@ -988,7 +993,12 @@ export class StudentUseCase {
         .reduce((sum, p) => sum + (p.penaltyScore || 0), 0) || 0;
 
     const totalMarks = Math.round(
-      cceMarkTotal + mentorMarkTotal + extraMarkTotal + 200 - penaltyMarkTotal
+      cceMarkTotal +
+        mentorMarkTotal +
+        pkvMarkTotal +
+        extraMarkTotal +
+        200 -
+        penaltyMarkTotal
     );
 
     const details = {

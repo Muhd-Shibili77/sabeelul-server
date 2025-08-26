@@ -874,6 +874,28 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPKVMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$PKVMarks",
+                    as: "pm",
+                    cond: { $eq: ["$$pm.academicYear", academicYear] },
+                  },
+                },
+                as: "pmf",
+                in: {
+                  $cond: [
+                    { $ifNull: ["$$pmf.mark", false] }, // if mark exists
+                    { $toInt: "$$pmf.mark" }, // convert
+                    0, // else default 0
+                  ],
+                },
+              },
+            },
+          },
+
           totalPenaltyMark: {
             $sum: {
               $map: {
@@ -896,7 +918,12 @@ export class StudentRepository implements IStudentRepository {
           performanceScore: {
             $subtract: [
               {
-                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+                $add: [
+                  "$totalExtraMark",
+                  "$totalMentorMark",
+                  "$totalPKVMark",
+                  "$totalCceScore",
+                ],
               },
               { $ifNull: ["$totalPenaltyMark", 0] },
             ],
@@ -1021,6 +1048,27 @@ export class StudentRepository implements IStudentRepository {
               },
             },
           },
+          totalPKVMark: {
+            $sum: {
+              $map: {
+                input: {
+                  $filter: {
+                    input: "$PKVMarks",
+                    as: "pm",
+                    cond: { $eq: ["$$pm.academicYear", academicYear] },
+                  },
+                },
+                as: "pmf",
+                in: {
+                  $cond: [
+                    { $ifNull: ["$$pmf.mark", false] }, // if mark exists
+                    { $toInt: "$$pmf.mark" }, // convert
+                    0, // else default 0
+                  ],
+                },
+              },
+            },
+          },
           totalPenaltyMark: {
             $sum: {
               $map: {
@@ -1043,7 +1091,12 @@ export class StudentRepository implements IStudentRepository {
           performanceScore: {
             $subtract: [
               {
-                $add: ["$totalExtraMark", "$totalMentorMark", "$totalCceScore"],
+                $add: [
+                  "$totalExtraMark",
+                  "$totalMentorMark",
+                  "$totalPKVMark",
+                  "$totalCceScore",
+                ],
               },
               { $ifNull: ["$totalPenaltyMark", 0] },
             ],
@@ -1060,8 +1113,7 @@ export class StudentRepository implements IStudentRepository {
         $project: {
           name: 1,
           performanceScore: 1,
-          profileImage: 1,
-          classId: "$classInfo",
+          totalPKVMark: 1,
         },
       },
     ];

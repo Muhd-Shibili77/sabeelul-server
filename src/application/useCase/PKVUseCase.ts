@@ -32,6 +32,12 @@ export class PKVUseCase{
         }
         return await this.pkvRepository.getPKVByStudentId(studentId, semester);
     }
+    async getPKVByClassId(classId: string) {
+        if (!classId) {
+            throw new Error("Class ID is required");
+        }
+        return await this.pkvRepository.getPKVByClassId(classId);
+    }
     async updatePKV(studentId: string, semester: string, phase: string, mark: number) {
         if (!studentId) {
             throw new Error("Student ID is required");

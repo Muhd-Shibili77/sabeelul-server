@@ -31,6 +31,18 @@ export class PKVController {
         .json({ success: false, message: error.message });
     }
   }
+  async fetchByClass(req: Request, res: Response) {
+    try {
+      const classId = req.params.id;
+      const result = await this.pkvUseCase.getPKVByClassId(classId);
+      return res.status(StatusCode.OK).json({ success: true, data: result || [] });
+    } catch (error: any) {
+      console.error(error);
+      res
+        .status(StatusCode.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: error.message });
+    }
+  }
   async updatePKV(req: Request, res: Response) {
     try {
       const studentId = req.params.id;

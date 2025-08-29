@@ -2,6 +2,7 @@ import { IPKVRepository } from "../../application/interface/IPKVRepository";
 import PKV from "../../domain/entites/PKV";
 import PKVModel from "../models/PKVModel";
 import { getCurrentAcademicYear } from "../../shared/utils/AcademicYr";
+import mongoose from "mongoose";
 
 export class PKVRepository implements IPKVRepository {
   async addPKV(
@@ -102,5 +103,57 @@ export class PKVRepository implements IPKVRepository {
       phase: phaseRecord.phase,
       mark: phaseRecord.mark,
     };
+  }
+  async getPKVByClassId(classId: string): Promise<any[]> {
+    const academicYear = getCurrentAcademicYear();
+
+    const records = await PKVModel.aggregate([
+      // Lookup student info
+      {
+        $lookup: {
+          from: "students",
+          localField: "studentId",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      { $unwind: "$student" },
+
+      // Match only students in the given class
+      {
+        $match: {
+          "student.classId": new mongoose.Types.ObjectId(classId),
+        },
+      },
+
+      // Keep only required fields + filtered PKVmarks
+      {
+        $project: {
+          studentId: 1,
+          "student.name": 1,
+          "student.admissionNo": 1,
+          PKVmarks: {
+            $filter: {
+              input: "$PKVmarks",
+              as: "m",
+              cond: { $eq: ["$$m.academicYear", academicYear] },
+            },
+          },
+        },
+      },
+    ]);
+
+    // Flatten out marks into studentId + phase-wise entries
+    return records.flatMap((record) =>
+      record.PKVmarks.flatMap((m: any) =>
+        m.marks.map((mark: any) => ({
+          studentId: record.studentId,
+          studentName: record.student.name,
+          admissionNo: record.student.admissionNo,
+          semester: m.semester,
+          ...mark,
+        }))
+      )
+    );
   }
 }

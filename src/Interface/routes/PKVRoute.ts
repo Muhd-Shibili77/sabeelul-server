@@ -15,6 +15,9 @@ router.post('/add/:id',authenticateJWT(['Teacher']),async (req:Request,res:Respo
 router.get('/fetch/:id',authenticateJWT(['Teacher']),async (req:Request,res:Response)=>{
     await pkvController.fetch(req,res)
 })
+router.get('/fetchByClass/:id',authenticateJWT(['Teacher','Admin']),async (req:Request,res:Response)=>{
+    await pkvController.fetchByClass(req,res)
+})
 router.put('/update/:id',authenticateJWT(['Teacher']),async (req:Request,res:Response)=>{
     await pkvController.updatePKV(req,res)
 })

@@ -552,7 +552,7 @@ export class StudentUseCase {
     if (!student) {
       throw new Error("score is not updated to student");
     }
-    const logTitle = `Credit Score - ${finalProgramName}`;
+    const logTitle = `Credit Score - ${finalProgramName} - (${description})`;
     const recentInput = await this.markLogsRepository.addMarkLog(
       id,
       academicYear,

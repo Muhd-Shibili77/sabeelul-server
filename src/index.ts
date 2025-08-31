@@ -11,10 +11,12 @@ import StudentRoute from './Interface/routes/StudentRoute';
 import AdminRoute from './Interface/routes/AdminRoute'
 import HomeRoute from './Interface/routes/HomeRoute'
 import PKVRoute from './Interface/routes/PKVRoute'
+import SemesterRoute from './Interface/routes/SemesterRoute'
 import path from "path";
 import cleanAllStudentsCCE from "./shared/utils/clearRepeatCCe";
 import { addAdmin } from "./shared/utils/addAdmin";
 import ThemeModel from "./infrastructure/models/ThemeModel";
+import { addSemester } from "./shared/utils/addSemester";
 
 dotenv.config();
 const app = express();
@@ -42,6 +44,7 @@ app.use("/student", StudentRoute);
 app.use("/admin", AdminRoute);
 app.use("/home",HomeRoute)
 app.use("/pkv",PKVRoute)
+app.use("/semester",SemesterRoute)
 app.get("/", (req, res) => {
   res.send("server is working");
 });
@@ -52,6 +55,11 @@ app.get("/clean", (req, res) => {
 app.get("/addAdmin", (req, res) => {
   // addAdmin('admin@shibili.com','123456')
   res.send("Adding... admin");
+});
+app.get("/addSemester", (req, res) => {
+  // addSemester('Rabee Semester')
+  // addSemester('Ramadan Semester')
+  res.send("Adding... semester");
 });
 
 // async function addTheme(){
